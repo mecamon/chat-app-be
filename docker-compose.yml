@@ -1,0 +1,10 @@
+version: '3.7'
+services:
+  web:
+    container_name: web_rest_application
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:8080"
+    entrypoint: ["./bin/chat-app"]

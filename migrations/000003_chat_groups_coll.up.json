@@ -1,0 +1,37 @@
+[{
+  "create": "chat_groups",
+  "validator": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "required": ["name", "group_owner"],
+      "properties": {
+        "name": {
+          "bsonType": "string",
+          "description": "must be a string"
+        },
+        "image_url": {
+          "bsonType": "string",
+          "description":"must be a string"
+        },
+        "group_owner": {
+          "bsonType": "objectId",
+          "description": "must be an objectId type"
+        },
+        "participants": {
+          "bsonType": "array",
+          "description": "participants type must be an array"
+        },
+        "created_at": {
+          "bsonType": "timestamp",
+          "description": "must be a timestamp"
+        },
+        "updated_at": {
+          "bsonType": "timestamp",
+          "description": "must be a timestamp"
+        }
+      }
+    }
+  },
+  "validationLevel": "strict",
+  "validationAction": "error"
+}]

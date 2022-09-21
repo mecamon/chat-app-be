@@ -1,0 +1,25 @@
+[{
+  "create": "day_messages",
+  "validator": {
+    "$jsonSchema": {
+      "bsonType": "object",
+      "required": ["created_at"],
+      "properties": {
+        "messages": {
+          "bsonType": "array",
+          "description": "messages must be an array"
+        },
+        "created_at": {
+          "bsonType": "timestamp",
+          "description": "must be a timestamp"
+        },
+        "updated_at": {
+          "bsonType": "timestamp",
+          "description": "must be a timestamp"
+        }
+      }
+    }
+  },
+  "validationLevel": "strict",
+  "validationAction": "error"
+}]

@@ -1,0 +1,16 @@
+[{
+  "createIndexes": "users",
+  "indexes": [
+    {
+      "key": {
+        "email": 1
+      },
+      "name": "unique_users_email",
+      "unique": true,
+      "partialFilterExpression": {
+        "email": {"$type": "string"}
+      }
+    }
+  ],
+  "writeConcern": { "w": "majority" }
+}]
