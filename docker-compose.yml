@@ -5,6 +5,27 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    depends_on:
+      - mongo
     ports:
       - "8080:8080"
-    entrypoint: ["./bin/chat-app"]
+    entrypoint: ["./wait-for-it.sh", "mongo:27017", "--", "./bin/chat-app", "-prod=false", "-dbuser=${DB_USER}", "-dbuserpassword=${DB_USER_PASSWORD}", "-dbhost=mongodb", "-dbport=${DB_PORT}", "-dbname=${DB_NAME}"]
+  mongo:
+    container_name: mongodb
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_ADMIN}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_ADMIN_PASSWORD}
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+  migrations:
+    container_name: migrations_runner
+    build: ./migrations
+    depends_on:
+      - mongo
+    volumes:
+      - ./migrations:/migrations
+    entrypoint: ["./wait-for-it.sh", "mongo:27017", "--", "migrate", "-path", "/migrations", "-database",  "mongodb://${DB_USER}:${DB_USER_PASSWORD}@mongo:27017/${DB_NAME}", "up"]
