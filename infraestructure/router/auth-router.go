@@ -6,12 +6,12 @@ import (
 	"github.com/mecamon/chat-app-be/interface/controller"
 )
 
-func AddAuthSubrouter() {
+func AddAuthSubRouter() {
 	main, err := GetMain()
 	if err != nil {
 		log.Println(err.Error())
 	}
-	
+
 	authController := controller.GetAuthController()
 	s := main.R.PathPrefix("/api/auth").Subrouter()
 	s.HandleFunc("/register", authController.Register)

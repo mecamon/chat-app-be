@@ -1,4 +1,7 @@
 run.sh
 chat-app
 coverage.out
+unit-coverage.out
+integration-coverage.out
 .env
+.idea

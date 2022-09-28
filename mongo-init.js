@@ -6,7 +6,7 @@ db.createUser(
     roles: [
     	{
         role: "readWrite",
-        db: "test"
+        db: "chat"
     	}
     ]
   }

@@ -1,0 +1,33 @@
+version: '3.7'
+services:
+  mongo:
+    container_name: mongodb
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_ADMIN}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_ADMIN_PASSWORD}
+      MONGO_INITDB_DATABASE: ${TEST_DB_NAME}
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+  migrations:
+    container_name: migrations_runner
+    build: ./migrations
+    depends_on:
+      - mongo
+    volumes:
+      - ./migrations:/migrations
+    entrypoint: ["./wait-for-it.sh", "mongo:27017", "--", "migrate", "-path", "/migrations", "-database",  "mongodb://${DB_USER}:${DB_USER_PASSWORD}@mongo:27017/${TEST_DB_NAME}", "up"]
+  integration_test:
+    container_name: integration_test
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      - mongo
+      - migrations
+    ports:
+      - "8080:8080"
+    entrypoint: [ "./wait-for-it.sh", "mongo:27017", "--", "go", "test", "./...", "--tags=integration", "-prod=false", "-dbuser=${TEST_DB_USER}", "-dbuserpassword=${TEST_DB_USER_PASSWORD}", "-dbhost=mongodb", "-dbport=${DB_PORT}", "-dbname=${TEST_DB_NAME}" ]

@@ -1,0 +1,49 @@
+[InvalidEmail]
+description = "Error message for invalid email address"
+one = "invalid email address"
+other = "invalid email address"
+
+[InvalidPassword]
+description = "Error message for invalid password"
+one = "password must contain at least one of this a-z, A-Z 0-9 and be longer than 8 characters"
+other = "password must contain at least one of this a-z, A-Z 0-9 and be longer than 8 characters"
+
+[NameTooShort]
+description = "Error message for name too short"
+one = "name must be at least {{.Count}} characters long"
+other = "name must be at least {{.Count}} characters long"
+
+[PhoneTooShort]
+description = "Error message for phone too short"
+one = "phone number must be at least {{.Count}} characters long"
+other = "phone number must be at least {{.Count}} characters long"
+
+[EmailAddressTaken]
+description = "Error message for email already in use"
+one = "the email inserted is already in use"
+other = "the email inserted is already in use"
+
+[InvalidEmailOrPassword]
+description = "Error message for bad credentials login"
+one = "wrong email or password"
+other = "wrong email or password"
+
+[WrongFileType]
+description = "Error message for wrong file type"
+other = "file type has to be {{.Types}}"
+
+[FileTooBig]
+description = "Error message for files too big"
+other = "file cannot be bigger than {{.MaxSize}}"
+
+[RequiredField]
+description = "Error message for required field"
+other = "{{.Field}} is required"
+
+[WrongQueryType]
+description = "Error for wrong query type"
+other = "{{.QueryParam}} type has to be {{.ExpectedType}}"
+
+[InvalidRouteParam]
+description = "Message for invalid argument"
+other = "the type of the route param is not correct"

@@ -34,12 +34,12 @@
           "description": "must be a string"
         },
         "created_at": {
-          "bsonType": "timestamp",
-          "description": "must be a timestamp"
+          "bsonType": "long",
+          "description": "must be a long"
         },
         "updated_at": {
-          "bsonType": "timestamp",
-          "description": "must be a timestamp"
+          "bsonType": "long",
+          "description": "must be a long"
         }
       }
     }

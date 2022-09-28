@@ -34,6 +34,5 @@ func SetRouter() {
 }
 
 func (m *Main) AddSubRouters() {
-	AddAuthSubrouter()
+	AddAuthSubRouter()
 }
-

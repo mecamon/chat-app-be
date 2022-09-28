@@ -1,4 +1,4 @@
-package database
+package data
 
 import (
 	"context"
@@ -8,9 +8,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-func CreateDBClient(uri string) (*mongo.Client, error) {
+type DB struct {
+	Client *mongo.Client
+}
+
+func CreateDBClient(uri string) (*DB, error) {
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
-	return client, err
+	return &DB{Client: client}, err
 }
 
 func PingDB(client *mongo.Client) error {
