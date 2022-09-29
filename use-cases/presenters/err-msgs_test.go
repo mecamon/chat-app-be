@@ -33,5 +33,4 @@ func TestErrMessages(t *testing.T) {
 	if len(result) != 2 {
 		t.Error("expected 2 but got less or more")
 	}
-
 }

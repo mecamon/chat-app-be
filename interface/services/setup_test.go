@@ -17,6 +17,7 @@ import (
 )
 
 var app *config.App
+var authRepo repositories.AuthRepo
 var authTestService *Auth
 
 func TestMain(m *testing.M) {
@@ -47,7 +48,7 @@ func runDB() *data.DB {
 }
 
 func runRepos(dbConn *data.DB) {
-	repositories_impl.InitAuthRepo(app, dbConn)
+	authRepo = repositories_impl.InitAuthRepo(app, dbConn)
 }
 
 func runServices(app *config.App, repo repositories.AuthRepo) {

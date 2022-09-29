@@ -8,6 +8,22 @@ import (
 	"testing"
 )
 
+func TestInitAuth(t *testing.T) {
+	var i interface{}
+	i = InitAuth(app, authRepo)
+	if _, ok := i.(*Auth); !ok {
+		t.Error("wrong type returned")
+	}
+}
+
+func TestGetAuth(t *testing.T) {
+	var i interface{}
+	i = GetAuth()
+	if _, ok := i.(*Auth); !ok {
+		t.Error("wrong type returned")
+	}
+}
+
 func TestAuth_Register(t *testing.T) {
 	var registerTests = []struct {
 		testName       string

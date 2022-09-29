@@ -15,11 +15,12 @@ import (
 	"testing"
 )
 
+var dbConn *data.DB
 var authTestRepo repositories.AuthRepo
 var app *config.App
 
 func TestMain(m *testing.M) {
-	dbConn := run()
+	dbConn = run()
 	code := m.Run()
 	shutdown(dbConn)
 	os.Exit(code)

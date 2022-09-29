@@ -10,6 +10,23 @@ import (
 	"time"
 )
 
+func TestInitAuthRepo(t *testing.T) {
+	var i interface{}
+	i = InitAuthRepo(app, dbConn)
+
+	if _, ok := i.(*AuthRepoImpl); !ok {
+		t.Error("wrong type")
+	}
+}
+
+func TestGetAuthRepo(t *testing.T) {
+	var i interface{}
+	i = GetAuthRepo()
+	if _, ok := i.(*AuthRepoImpl); !ok {
+		t.Error("wrong type")
+	}
+}
+
 func TestAuthRepoImpl_Register(t *testing.T) {
 	var registerTests = []struct {
 		testName      string
