@@ -1,6 +1,9 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"github.com/golang-jwt/jwt/v4"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type User struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
@@ -22,4 +25,10 @@ type UserDTO struct {
 	Email    string             `bson:"email,omitempty" json:"email"`
 	Phone    int64              `bson:"phone,omitempty" json:"phone"`
 	PhotoURL string             `bson:"photo_url,omitempty" json:"photoURL"`
+}
+
+type CustomClaims struct {
+	TokenType string
+	ID        string `json:"id"`
+	*jwt.RegisteredClaims
 }

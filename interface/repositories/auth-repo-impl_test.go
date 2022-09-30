@@ -1,9 +1,7 @@
-//go:build integration
-// +build integration
-
 package repositories_impl
 
 import (
+	"errors"
 	"github.com/mecamon/chat-app-be/models"
 	"github.com/mecamon/chat-app-be/utils"
 	"testing"
@@ -70,6 +68,51 @@ func TestAuthRepoImpl_Register(t *testing.T) {
 			t.Error(err.Error())
 		} else if err == nil && tt.expectedError {
 			t.Error("expected error but got nothing")
+		}
+	}
+}
+
+func TestAuthRepoImpl_Login(t *testing.T) {
+	password := "LoginPass1234"
+	validUSer := models.User{
+		Name:      "login user",
+		Bio:       "this is a login user",
+		Email:     "loginrepo@mail.com",
+		Password:  password,
+		Phone:     1234567890,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+
+	hashPass, err := utils.GenerateHash(validUSer.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	validUSer.Password = hashPass
+
+	_, err = authTestRepo.Register(validUSer)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var loginTests = []struct {
+		testName        string
+		email, password string
+		expectedErr     error
+	}{
+		{testName: "valid credentials", email: validUSer.Email, password: password, expectedErr: nil},
+		{testName: "invalid email", email: "some@mail", password: password, expectedErr: errors.New("wrong email or password")},
+		{testName: "invalid password", email: validUSer.Email, password: "wrongpass", expectedErr: errors.New("wrong email or password")},
+	}
+
+	for _, tt := range loginTests {
+		t.Log(tt.testName)
+		_, err = authTestRepo.Login(tt.email, tt.password)
+		if tt.expectedErr == nil && err != nil {
+			t.Error(err.Error())
+		} else if tt.expectedErr != nil && err == nil {
+			t.Error("expected error is NOT 'nil' but did not get an error")
 		}
 	}
 }

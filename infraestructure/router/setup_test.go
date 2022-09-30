@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package router
 
 import (
@@ -9,6 +12,7 @@ import (
 	"github.com/mecamon/chat-app-be/interface/controller"
 	repositories_impl "github.com/mecamon/chat-app-be/interface/repositories"
 	"github.com/mecamon/chat-app-be/interface/services"
+	"github.com/mecamon/chat-app-be/use-cases/repositories"
 	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"net/http"
@@ -18,6 +22,7 @@ import (
 
 var app *config.App
 var mainRouter http.Handler
+var authTestRepo repositories.AuthRepo
 
 func TestMain(m *testing.M) {
 	config.SetConfig()
@@ -28,7 +33,7 @@ func TestMain(m *testing.M) {
 	mLoc := appi18n.GetMultiLocales()
 
 	dbConn := runDB()
-	authTestRepo := repositories_impl.InitAuthRepo(app, dbConn)
+	authTestRepo = repositories_impl.InitAuthRepo(app, dbConn)
 	authTestService := services.InitAuth(app, authTestRepo)
 	controller.InitAuthController(app, mLoc, authTestService)
 

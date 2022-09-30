@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package router
 
 import (
@@ -58,6 +61,17 @@ func TestAuthController_Register(t *testing.T) {
 			t.Errorf("expected status code %d, but got %d", tt.expectedCode, rr.Code)
 		}
 
+		if rr.Code == http.StatusCreated {
+			resBody := struct {
+				Token string `json:"token"`
+			}{}
+			if err := json.NewDecoder(rr.Body).Decode(&resBody); err == nil {
+				if resBody.Token == "" {
+					t.Error("expected a token but got an empty string")
+				}
+			}
+		}
+
 		if tt.expectedCode == http.StatusBadRequest || tt.expectedCode == http.StatusConflict {
 			var errResponse []string
 			if err := json.NewDecoder(rr.Body).Decode(&errResponse); err != nil {
@@ -66,6 +80,72 @@ func TestAuthController_Register(t *testing.T) {
 			if tt.expectedErrors != len(errResponse) {
 				t.Errorf("expected errors are %d, but got %d", tt.expectedErrors, len(errResponse))
 			}
+		}
+	}
+}
+
+func TestAuthController_Login(t *testing.T) {
+	password := "validPass1234"
+	user := models.User{
+		Name:      "Login cont user",
+		Bio:       "This is the login controller user",
+		Email:     "loginctrl@mail.com",
+		Password:  password,
+		Phone:     123455677655,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	hashPass, err := utils.GenerateHash(password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	user.Password = hashPass
+
+	_, err = authTestRepo.Register(user)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var loginTests = []struct {
+		testName, email, password string
+		statusCode                int
+	}{
+		{testName: "successful login", email: user.Email, password: password, statusCode: http.StatusOK},
+		{testName: "wrong email", email: "dasdadddafa", password: password, statusCode: http.StatusBadRequest},
+		{testName: "wrong password", email: user.Email, password: "dasdaddf23", statusCode: http.StatusBadRequest},
+	}
+
+	for _, tt := range loginTests {
+		t.Log(tt.testName)
+
+		uEntry := struct {
+			Email    string `json:"email"`
+			Password string `json:"password"`
+		}{
+			Email:    tt.email,
+			Password: tt.password,
+		}
+
+		body, _ := json.Marshal(uEntry)
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/auth/login", bytes.NewReader(body))
+		mainRouter.ServeHTTP(rr, req)
+
+		if rr.Code == http.StatusOK {
+			resBody := struct {
+				Token string `json:"token"`
+			}{}
+			if err := json.NewDecoder(rr.Body).Decode(&resBody); err == nil {
+				if resBody.Token == "" {
+					t.Error("expected a token but got an empty string")
+				}
+			}
+		}
+
+		if rr.Code != tt.statusCode {
+			t.Errorf("expected statusCode is %d, but got %d", tt.statusCode, rr.Code)
 		}
 	}
 }

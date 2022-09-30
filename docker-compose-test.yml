@@ -2,8 +2,8 @@ version: '3.7'
 services:
   mongo:
     container_name: mongodb
-    image: mongo
-    restart: always
+    image: mongo:6
+    restart: on-failure
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${DB_ADMIN}
       MONGO_INITDB_ROOT_PASSWORD: ${DB_ADMIN_PASSWORD}

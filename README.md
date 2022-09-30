@@ -8,6 +8,8 @@ A simple application to chat in groups.
 - [gorilla/mux](https://github.com/gorilla/mux)
 - [gorilla/websocket](https://github.com/gorilla/websocket)
 - [mongodb](go.mongodb.org/mongo-driver/mongo)
+- [golang-jwt/jwt](https://github.com/golang-jwt/jwt)
+- [bcrypt](https://pkg.go.dev/golang.org/x/crypto/bcrypt)
 
 ## Other development and testing tools in use
 - [Docker](https://www.docker.com/)

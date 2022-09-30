@@ -45,3 +45,18 @@ func (a *Auth) Register(uEntry models.User) (string, []*cErrors.Custom) {
 	}
 	return insertedID, errSlice
 }
+
+func (a *Auth) Login(email, password string) (string, []*cErrors.Custom) {
+	var errSlice []*cErrors.Custom
+
+	ID, err := a.authRepo.Login(email, password)
+	if err != nil {
+		errSlice = append(errSlice, &cErrors.Custom{
+			Property:     "email",
+			MessageID:    "InvalidEmailOrPassword",
+			TemplateData: nil,
+		})
+		return "", errSlice
+	}
+	return ID, errSlice
+}

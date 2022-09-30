@@ -5,7 +5,9 @@ package services
 
 import (
 	"github.com/mecamon/chat-app-be/models"
+	"github.com/mecamon/chat-app-be/utils"
 	"testing"
+	"time"
 )
 
 func TestInitAuth(t *testing.T) {
@@ -53,6 +55,48 @@ func TestAuth_Register(t *testing.T) {
 		_, errColl := authTestService.Register(tt.uEntry)
 		if len(errColl) != tt.expectedErrors {
 			t.Errorf("expected %d but got %d", tt.expectedErrors, len(errColl))
+		}
+	}
+}
+
+func TestAuth_Login(t *testing.T) {
+	password := "validPass1234"
+	uEntry := models.User{
+		Name:      "Login user",
+		Bio:       "This is the login service user",
+		Email:     "loginservice@mail.com",
+		Password:  password,
+		Phone:     1234567890,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	hashPass, err := utils.GenerateHash(uEntry.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	uEntry.Password = hashPass
+	_, errColl := authTestService.Register(uEntry)
+	if len(errColl) != 0 {
+		t.Error(errColl)
+	}
+
+	var loginTests = []struct {
+		testName, email, password string
+		expectingErr              bool
+	}{
+		{testName: "valid user", email: uEntry.Email, password: password, expectingErr: false},
+		{testName: "invalid email", email: "ramdon@dmm.com", password: password, expectingErr: true},
+		{testName: "invalid password", email: uEntry.Email, password: "wrongpass", expectingErr: true},
+	}
+
+	for _, tt := range loginTests {
+		t.Log(tt.testName)
+		_, errColl := authTestService.Login(tt.email, tt.password)
+		if len(errColl) != 0 && !tt.expectingErr {
+			t.Error("was NOT expecting errors but got some")
+		} else if len(errColl) == 0 && tt.expectingErr {
+			t.Error("was expecting errors but did NOT get them")
 		}
 	}
 }

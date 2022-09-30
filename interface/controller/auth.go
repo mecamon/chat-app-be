@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	appi18n "github.com/mecamon/chat-app-be/i18n"
+	json_web_token "github.com/mecamon/chat-app-be/interface/json-web-token"
 	"github.com/mecamon/chat-app-be/interface/services"
 	"github.com/mecamon/chat-app-be/models"
 	"github.com/mecamon/chat-app-be/use-cases/presenters"
@@ -53,9 +54,13 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token, err := json_web_token.Generate(insertedID, "")
+	if err != nil {
+		panic(w)
+	}
 	var regSuccess = struct {
-		InsertedID string `json:"insertedID"`
-	}{InsertedID: insertedID}
+		Token string `json:"token"`
+	}{Token: token}
 
 	body, err := json.Marshal(regSuccess)
 	if err != nil {
@@ -65,7 +70,39 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("login endpoint"))
+	lang := r.Header.Get("Accept-Language")
+	locales := c.mLocales.GetSpeLocales(lang)
+
+	var uEntry struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&uEntry); err != nil {
+		panic(w)
+	}
+
+	ID, errColl := c.authService.Login(uEntry.Email, uEntry.Password)
+	if len(errColl) != 0 {
+		errMessages := presenters.ErrMessages(locales, errColl)
+		body, err := json.Marshal(errMessages)
+		if err != nil {
+			panic(w)
+		}
+		utils.Response(w, http.StatusBadRequest, body)
+		return
+	}
+
+	token, err := json_web_token.Generate(ID, "")
+	if err != nil {
+		panic(w)
+	}
+	regSuccess := struct {
+		Token string `json:"token"`
+	}{Token: token}
+
+	body, err := json.Marshal(regSuccess)
+	if err != nil {
+		panic(w)
+	}
+	utils.Response(w, http.StatusCreated, body)
 }
