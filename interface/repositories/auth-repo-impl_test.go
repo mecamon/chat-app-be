@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package repositories_impl
 
 import (
@@ -113,6 +116,83 @@ func TestAuthRepoImpl_Login(t *testing.T) {
 			t.Error(err.Error())
 		} else if tt.expectedErr != nil && err == nil {
 			t.Error("expected error is NOT 'nil' but did not get an error")
+		}
+	}
+}
+
+func TestAuthRepoImpl_FindByEmail(t *testing.T) {
+	password := "validPassword12344"
+	user := models.User{
+		Name:      "user to FindByEmail",
+		Bio:       "This is an user to find by email",
+		Email:     "findby@mail.com",
+		Password:  password,
+		Phone:     8098907654,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	_, err := utils.GenerateHash(user.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var findByEmailTests = []struct {
+		testName, email string
+		userFound       bool
+		expectedErr     error
+	}{
+		{testName: "user found", email: user.Email, userFound: true, expectedErr: nil},
+		{testName: "user not found", email: "notexisting@mail.com", userFound: false, expectedErr: errors.New("has error")},
+	}
+
+	for _, tt := range findByEmailTests {
+		t.Log(tt.testName)
+		user, err := authTestRepo.FindByEmail(tt.email)
+		if err != nil {
+			t.Error(err.Error())
+		}
+		if (user.Email == tt.email) != tt.userFound {
+			t.Error("expected to find user, but it didn't")
+		}
+		if tt.expectedErr == nil && err != nil {
+			t.Error("did not expect error but got one")
+		}
+	}
+}
+
+func TestAuthRepoImpl_ChangePassword(t *testing.T) {
+	password := "validPassword12344"
+	user := models.User{
+		Name:      "user to change",
+		Bio:       "THis is an user to change the password",
+		Email:     "change@mail.com",
+		Password:  password,
+		Phone:     8098907654,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	insertedID, err := utils.GenerateHash(user.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var changePassTests = []struct {
+		testName, newPass, userID string
+		expectedErr               error
+	}{
+		{testName: "successful changed password", newPass: "AnotherPass123", userID: insertedID, expectedErr: nil},
+		{testName: "not existing ID", newPass: "AnotherPass123", userID: "notExistingId", expectedErr: errors.New("has error")},
+	}
+
+	for _, tt := range changePassTests {
+		t.Log(tt.testName)
+		err := authTestRepo.ChangePassword(tt.userID, tt.newPass)
+		if err == nil && tt.expectedErr != nil {
+			t.Error("error was expected, but none was thrown")
+		} else if err != nil && tt.expectedErr == nil {
+			t.Error("threw an error and none was expected")
 		}
 	}
 }
