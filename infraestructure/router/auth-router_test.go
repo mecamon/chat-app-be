@@ -7,9 +7,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/mecamon/chat-app-be/models"
+	"github.com/mecamon/chat-app-be/utils"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestAuthController_Register(t *testing.T) {
@@ -146,6 +148,72 @@ func TestAuthController_Login(t *testing.T) {
 
 		if rr.Code != tt.statusCode {
 			t.Errorf("expected statusCode is %d, but got %d", tt.statusCode, rr.Code)
+		}
+	}
+}
+
+func TestAuthController_SendRecoveryLink(t *testing.T) {
+	password := "Password1234"
+	user := models.User{
+		Name:      "Send Recover Ctrl",
+		Bio:       "This is the send recover ctrl",
+		Email:     "sendrecover@controller.com",
+		Password:  password,
+		Phone:     809123456789,
+		PhotoURL:  "",
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	hashPass, err := utils.GenerateHash(password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	user.Password = hashPass
+
+	_, err = authTestRepo.Register(user)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var sendRecoverTests = []struct {
+		testName           string
+		email              string
+		expectedStatusCode int
+	}{
+		{testName: "existing email", email: user.Email, expectedStatusCode: http.StatusOK},
+		{testName: "invalid email address", email: "invalidemail", expectedStatusCode: http.StatusBadRequest},
+		{testName: "not existing email", email: "notinserted@mail.com", expectedStatusCode: http.StatusNotFound},
+	}
+
+	for _, tt := range sendRecoverTests {
+		t.Log(tt.testName)
+
+		uEntry := struct {
+			Email string `json:"email"`
+		}{
+			Email: tt.email,
+		}
+
+		body, _ := json.Marshal(uEntry)
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/auth/recover", bytes.NewReader(body))
+		mainRouter.ServeHTTP(rr, req)
+
+		if rr.Code == http.StatusOK {
+			bodyRes := struct {
+				Link string `json:"link"`
+			}{}
+			if err := json.NewDecoder(rr.Body).Decode(&bodyRes); err != nil {
+				t.Error("could not decode the body response:", err.Error())
+			}
+			if bodyRes.Link == "" {
+				t.Error("link should not be empty if the response is OK")
+			}
+		}
+		if rr.Code != tt.expectedStatusCode {
+			t.Errorf("expected statusCode is %d, but got %d", tt.expectedStatusCode, rr.Code)
 		}
 	}
 }

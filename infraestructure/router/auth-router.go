@@ -16,4 +16,5 @@ func AddAuthSubRouter() {
 	s := main.R.PathPrefix("/api/auth").Subrouter()
 	s.HandleFunc("/register", authController.Register)
 	s.HandleFunc("/login", authController.Login)
+	s.HandleFunc("/recover", authController.SendRecoveryLink)
 }

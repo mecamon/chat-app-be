@@ -14,9 +14,10 @@ import (
 )
 
 type AuthController struct {
-	app         *config.App
-	mLocales    *appi18n.MultiLocales
-	authService *services.Auth
+	app          *config.App
+	mLocales     *appi18n.MultiLocales
+	authService  *services.Auth
+	emailService *services.Email
 }
 
 var auth *AuthController
@@ -104,5 +105,48 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(w)
 	}
-	utils.Response(w, http.StatusCreated, body)
+	utils.Response(w, http.StatusOK, body)
+}
+
+func (c *AuthController) SendRecoveryLink(w http.ResponseWriter, r *http.Request) {
+	lang := r.Header.Get("Accept-Language")
+	locales := c.mLocales.GetSpeLocales(lang)
+
+	var uEntry struct {
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&uEntry); err != nil {
+		panic(w)
+	}
+
+	link, errSlice := c.authService.SendRecoverPassLink(uEntry.Email)
+	if len(errSlice) != 0 {
+		for _, ee := range errSlice {
+			if ee.MessageID == "ServerError" {
+				utils.Response(w, http.StatusInternalServerError, nil)
+				return
+			}
+			if ee.MessageID == "EmailDoesNotExist" {
+				utils.Response(w, http.StatusNotFound, nil)
+				return
+			}
+		}
+		errMessages := presenters.ErrMessages(locales, errSlice)
+		body, err := json.Marshal(errMessages)
+		if err != nil {
+			panic(w)
+		}
+		utils.Response(w, http.StatusBadRequest, body)
+		return
+	}
+
+	resSuccess := struct {
+		Link string `json:"link"`
+	}{Link: link}
+
+	body, err := json.Marshal(resSuccess)
+	if err != nil {
+		panic(w)
+	}
+	utils.Response(w, http.StatusOK, body)
 }

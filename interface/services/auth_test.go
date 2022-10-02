@@ -100,3 +100,48 @@ func TestAuth_Login(t *testing.T) {
 		}
 	}
 }
+
+func TestAuth_SendRecoverPassLink(t *testing.T) {
+	password := "validPass1234"
+	uEntry := models.User{
+		Name:      "Send recover user",
+		Bio:       "This is the send recover service",
+		Email:     "recoverservice@mail.com",
+		Password:  password,
+		Phone:     1234567890,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	hashPass, err := utils.GenerateHash(uEntry.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	uEntry.Password = hashPass
+	_, err = authRepo.Register(uEntry)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var sendRecoverTests = []struct {
+		testName     string
+		email        string
+		expectingErr bool
+	}{
+		{testName: "valid email", email: uEntry.Email, expectingErr: false},
+		{testName: "invalid email", email: "notvalid@mail.com", expectingErr: true},
+	}
+
+	for _, tt := range sendRecoverTests {
+		t.Log(tt.testName)
+		token, errSlice := authTestService.SendRecoverPassLink(tt.email)
+		hasErrors := len(errSlice) != 0
+		if hasErrors != tt.expectingErr {
+			t.Errorf("expectingErr was %v, but got %v", tt.expectingErr, hasErrors)
+		}
+
+		if token == "" && !hasErrors {
+			t.Error("token must not return empty if there are NOT errors")
+		}
+	}
+}

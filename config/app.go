@@ -5,9 +5,10 @@ import "flag"
 var app App
 
 type App struct {
-	Port string
-	IsProd bool
+	Port                                           string
+	IsProd                                         bool
 	DBUser, DBUserPassword, DBHost, DBPort, DBName string
+	RecoverHostAndPath                             string
 }
 
 func SetConfig() {
@@ -18,6 +19,7 @@ func SetConfig() {
 	flag.StringVar(&app.DBHost, "dbhost", "", "host on which the db running")
 	flag.StringVar(&app.DBPort, "dbport", "", "port on which the database is running")
 	flag.StringVar(&app.DBName, "dbname", "", "database name")
+	flag.StringVar(&app.RecoverHostAndPath, "recoverpasslink", "", "recovery pass link")
 	flag.Parse()
 }
 

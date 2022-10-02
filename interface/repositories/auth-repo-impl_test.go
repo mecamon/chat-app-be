@@ -132,7 +132,13 @@ func TestAuthRepoImpl_FindByEmail(t *testing.T) {
 		CreatedAt: time.Now().Unix(),
 		UpdatedAt: time.Now().Unix(),
 	}
-	_, err := utils.GenerateHash(user.Password)
+	hashPassword, err := utils.GenerateHash(user.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	user.Password = hashPassword
+
+	_, err = authRepoImpl.Register(user)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -148,15 +154,19 @@ func TestAuthRepoImpl_FindByEmail(t *testing.T) {
 
 	for _, tt := range findByEmailTests {
 		t.Log(tt.testName)
-		user, err := authTestRepo.FindByEmail(tt.email)
-		if err != nil {
-			t.Error(err.Error())
-		}
-		if (user.Email == tt.email) != tt.userFound {
-			t.Error("expected to find user, but it didn't")
-		}
-		if tt.expectedErr == nil && err != nil {
-			t.Error("did not expect error but got one")
+		u, err := authTestRepo.FindByEmail(tt.email)
+
+		if tt.expectedErr == nil {
+			if err != nil {
+				t.Error("error was not expected, but got error:", err.Error())
+			}
+			if u.Email != tt.email {
+				t.Error("email inserted and email found are NOT the same")
+			}
+		} else if tt.expectedErr != nil {
+			if err == nil {
+				t.Error("error was expected but did NOT get any")
+			}
 		}
 	}
 }
@@ -173,7 +183,12 @@ func TestAuthRepoImpl_ChangePassword(t *testing.T) {
 		CreatedAt: time.Now().Unix(),
 		UpdatedAt: time.Now().Unix(),
 	}
-	insertedID, err := utils.GenerateHash(user.Password)
+	hasPassword, err := utils.GenerateHash(user.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	user.Password = hasPassword
+	insertedID, err := authRepoImpl.Register(user)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -188,11 +203,17 @@ func TestAuthRepoImpl_ChangePassword(t *testing.T) {
 
 	for _, tt := range changePassTests {
 		t.Log(tt.testName)
-		err := authTestRepo.ChangePassword(tt.userID, tt.newPass)
-		if err == nil && tt.expectedErr != nil {
-			t.Error("error was expected, but none was thrown")
-		} else if err != nil && tt.expectedErr == nil {
-			t.Error("threw an error and none was expected")
+		err = authTestRepo.ChangePassword(tt.userID, tt.newPass)
+
+		if tt.expectedErr == nil {
+			if err != nil {
+				t.Error("got an error,but was NOT expecting any. error:", err.Error())
+			}
+		}
+		if tt.expectedErr != nil {
+			if err == nil {
+				t.Error("it was expecting an error but did NOT get it")
+			}
 		}
 	}
 }

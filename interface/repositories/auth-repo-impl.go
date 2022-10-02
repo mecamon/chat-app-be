@@ -112,7 +112,7 @@ func (a *AuthRepoImpl) ChangePassword(id, newPassword string) error {
 	if err != nil {
 		return err
 	}
-	if updateRes.UpsertedCount == 0 {
+	if updateRes.MatchedCount == 0 {
 		return errors.New("nothing was updated")
 	}
 	return nil
