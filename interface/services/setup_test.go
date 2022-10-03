@@ -19,6 +19,7 @@ import (
 var app *config.App
 var authRepo repositories.AuthRepo
 var authTestService *Auth
+var mailTestService *Mail
 
 func TestMain(m *testing.M) {
 	dbConn := runDB()
@@ -53,6 +54,7 @@ func runRepos(dbConn *data.DB) {
 
 func runServices(app *config.App, repo repositories.AuthRepo) {
 	authTestService = InitAuth(app, repo)
+	mailTestService = InitMailService(app)
 }
 
 func shutdown(dbConn *data.DB) {

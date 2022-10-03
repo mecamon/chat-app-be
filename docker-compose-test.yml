@@ -30,4 +30,4 @@ services:
       - migrations
     ports:
       - "8080:8080"
-    entrypoint: [ "./wait-for-it.sh", "mongo:27017", "--", "go", "test", "./...", "--tags=integration", "-prod=false", "-dbuser=${TEST_DB_USER}", "-dbuserpassword=${TEST_DB_USER_PASSWORD}", "-dbhost=mongodb", "-dbport=${DB_PORT}", "-dbname=${TEST_DB_NAME}" ]
+    entrypoint: [ "./wait-for-it.sh", "mongo:27017", "--", "go", "test", "./...", "--tags=integration", "-prod=false", "-dbuser=${TEST_DB_USER}", "-dbuserpassword=${TEST_DB_USER_PASSWORD}", "-dbhost=mongodb", "-dbport=${DB_PORT}", "-dbname=${TEST_DB_NAME}", "-emailacc=${TEST_EMAIL_ACC}", "-emailpass=${TEST_EMAIL_PASS_ACC}" ]

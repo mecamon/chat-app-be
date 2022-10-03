@@ -17,16 +17,21 @@ type AuthController struct {
 	app          *config.App
 	mLocales     *appi18n.MultiLocales
 	authService  *services.Auth
-	emailService *services.Email
+	emailService *services.Mail
 }
 
 var auth *AuthController
 
-func InitAuthController(app *config.App, loc *appi18n.MultiLocales, authServ *services.Auth) *AuthController {
+func InitAuthController(
+	app *config.App,
+	loc *appi18n.MultiLocales,
+	authServ *services.Auth,
+	emailServ *services.Mail) *AuthController {
 	auth = &AuthController{
-		app:         app,
-		mLocales:    loc,
-		authService: authServ,
+		app:          app,
+		mLocales:     loc,
+		authService:  authServ,
+		emailService: emailServ,
 	}
 	return auth
 }
@@ -140,6 +145,8 @@ func (c *AuthController) SendRecoveryLink(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	//TODO: send email with the link the user
+
 	resSuccess := struct {
 		Link string `json:"link"`
 	}{Link: link}
@@ -149,4 +156,37 @@ func (c *AuthController) SendRecoveryLink(w http.ResponseWriter, r *http.Request
 		panic(w)
 	}
 	utils.Response(w, http.StatusOK, body)
+}
+
+func (c *AuthController) ChangePass(w http.ResponseWriter, r *http.Request) {
+	customClaims, err := json_web_token.Validate(r.Header.Get("Authorization"))
+	if err != nil {
+		utils.Response(w, http.StatusUnauthorized, nil)
+		return
+	}
+
+	lang := r.Header.Get("Accept-Language")
+	locales := c.mLocales.GetSpeLocales(lang)
+	ID := customClaims.ID
+
+	body := struct {
+		NewPassword string `json:"newPassword"`
+	}{}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		panic(w)
+	}
+
+	errSlice := c.authService.ChangePassword(ID, body.NewPassword)
+	if len(errSlice) != 0 {
+		errMessages := presenters.ErrMessages(locales, errSlice)
+		bodyRes, err := json.Marshal(errMessages)
+		if err != nil {
+			panic(w)
+		}
+		utils.Response(w, http.StatusBadRequest, bodyRes)
+		return
+	}
+
+	utils.Response(w, http.StatusOK, nil)
 }

@@ -6,6 +6,7 @@ package router
 import (
 	"bytes"
 	"encoding/json"
+	json_web_token "github.com/mecamon/chat-app-be/interface/json-web-token"
 	"github.com/mecamon/chat-app-be/models"
 	"github.com/mecamon/chat-app-be/utils"
 	"net/http"
@@ -214,6 +215,72 @@ func TestAuthController_SendRecoveryLink(t *testing.T) {
 		}
 		if rr.Code != tt.expectedStatusCode {
 			t.Errorf("expected statusCode is %d, but got %d", tt.expectedStatusCode, rr.Code)
+		}
+	}
+}
+
+func TestAuthController_ChangePass(t *testing.T) {
+	password := "Password123"
+	user := models.User{
+		Name:      "Change Pass ctrl",
+		Bio:       "This is the change pass controller",
+		Email:     "changepass@controller.com",
+		Password:  password,
+		Phone:     8091234567,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	hashedPass, err := utils.GenerateHash(password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	user.Password = hashedPass
+	insertedID, err := authTestRepo.Register(user)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	token, err := json_web_token.Generate(insertedID, "")
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var changePassTests = []struct {
+		testName           string
+		token              string
+		newPassword        string
+		expectedStatusCode int
+	}{
+		{testName: "valid token and password", token: token, newPassword: "ValidPass123456", expectedStatusCode: http.StatusOK},
+		{testName: "invalid password format", token: token, newPassword: "asdasfaf", expectedStatusCode: http.StatusBadRequest},
+		{testName: "invalid token", token: "invalid", newPassword: "ValidPass123456", expectedStatusCode: http.StatusUnauthorized},
+	}
+
+	for _, tt := range changePassTests {
+		t.Log(tt.testName)
+		uEntry := struct {
+			NewPassword string `json:"newPassword"`
+		}{
+			NewPassword: tt.newPassword,
+		}
+
+		body, err := json.Marshal(uEntry)
+		if err != nil {
+			t.Error(err.Error())
+		}
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/api/auth/change-password", bytes.NewReader(body))
+		req.Header.Add("Authorization", tt.token)
+		mainRouter.ServeHTTP(rr, req)
+
+		if rr.Code != tt.expectedStatusCode {
+			t.Errorf("expected status code is %d, but got %d", tt.expectedStatusCode, rr.Code)
+
+			var resBody interface{}
+
+			_ = json.NewDecoder(rr.Body).Decode(&resBody)
+			t.Error("BODY RESPONSE", resBody)
 		}
 	}
 }

@@ -8,6 +8,11 @@ description = "Error message for invalid password"
 one = "password must contain at least one of this a-z, A-Z 0-9 and be longer than 8 characters"
 other = "password must contain at least one of this a-z, A-Z 0-9 and be longer than 8 characters"
 
+[ErrorChangingPass]
+description = "Error message for changing password"
+one = "something went wrong changing the password"
+other = "something went wrong changing the password"
+
 [NameTooShort]
 description = "Error message for name too short"
 one = "name must be at least {{.Count}} characters long"

@@ -145,3 +145,46 @@ func TestAuth_SendRecoverPassLink(t *testing.T) {
 		}
 	}
 }
+
+func TestAuth_ChangePassword(t *testing.T) {
+	password := "Password3344"
+	user := models.User{
+		Name:      "Service ChangePass",
+		Bio:       "Service to change password",
+		Email:     "service@changepass.com",
+		Password:  password,
+		Phone:     8093456789,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	hashedPass, err := utils.GenerateHash(password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	user.Password = hashedPass
+	insertedID, err := authRepo.Register(user)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var changePassTests = []struct {
+		testName     string
+		ID           string
+		newPassword  string
+		expectingErr bool
+	}{
+		{testName: "valid change", ID: insertedID, newPassword: "ValidPass2233", expectingErr: false},
+		{testName: "invalid pass format", ID: insertedID, newPassword: "1234513554", expectingErr: true},
+	}
+
+	for _, tt := range changePassTests {
+		t.Log(tt.testName)
+		errSlice := authTestService.ChangePassword(tt.ID, tt.newPassword)
+
+		hasErrors := len(errSlice) != 0
+		if hasErrors != tt.expectingErr {
+			t.Errorf("expectingErr is %v, but got %v", tt.expectingErr, hasErrors)
+		}
+	}
+}

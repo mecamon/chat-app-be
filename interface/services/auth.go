@@ -98,6 +98,28 @@ func (a *Auth) SendRecoverPassLink(email string) (string, []*cErrors.Custom) {
 		return "", errSlice
 	}
 	recoverLinkWithToken := fmt.Sprintf("%s?t=%s", a.app.RecoverHostAndPath, token)
-
 	return recoverLinkWithToken, errSlice
+}
+
+func (a *Auth) ChangePassword(ID, newPassword string) []*cErrors.Custom {
+	var errSlice []*cErrors.Custom
+
+	if hasValidPass := utils.HasValidPass(newPassword); !hasValidPass {
+		errSlice = append(errSlice, &cErrors.Custom{
+			Property:     "password",
+			MessageID:    "InvalidPassword",
+			TemplateData: nil,
+		})
+		return errSlice
+	}
+	if err := a.authRepo.ChangePassword(ID, newPassword); err != nil {
+		errSlice = append(errSlice, &cErrors.Custom{
+			Property:     "password",
+			MessageID:    "ErrorChangingPass",
+			TemplateData: nil,
+		})
+		return errSlice
+	}
+
+	return errSlice
 }

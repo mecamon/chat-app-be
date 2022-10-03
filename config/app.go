@@ -9,6 +9,8 @@ type App struct {
 	IsProd                                         bool
 	DBUser, DBUserPassword, DBHost, DBPort, DBName string
 	RecoverHostAndPath                             string
+	EmailAcc, EmailAccPass, EmailHost              string
+	EmailPort                                      int
 }
 
 func SetConfig() {
@@ -20,6 +22,10 @@ func SetConfig() {
 	flag.StringVar(&app.DBPort, "dbport", "", "port on which the database is running")
 	flag.StringVar(&app.DBName, "dbname", "", "database name")
 	flag.StringVar(&app.RecoverHostAndPath, "recoverpasslink", "", "recovery pass link")
+	flag.StringVar(&app.EmailAcc, "emailacc", "", "email account to send mails from")
+	flag.StringVar(&app.EmailAccPass, "emailpass", "", "email account's password")
+	flag.StringVar(&app.EmailHost, "emailhost", "smtp.live.com", "email host")
+	flag.IntVar(&app.EmailPort, "emailport", 587, "email port")
 	flag.Parse()
 }
 

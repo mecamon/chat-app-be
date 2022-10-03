@@ -68,6 +68,7 @@ func runDB(app *config.App) *data.DB {
 func runRepos(app *config.App, dbConn *data.DB) {
 	authRepo := repository.InitAuthRepo(app, dbConn)
 	services.InitAuth(app, authRepo)
+	services.InitMailService(app)
 }
 
 func runRouters() http.Handler {

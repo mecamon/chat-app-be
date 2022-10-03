@@ -27,6 +27,12 @@ type UserDTO struct {
 	PhotoURL string             `bson:"photo_url,omitempty" json:"photoURL"`
 }
 
+type EmailInfo struct {
+	Address string
+	Subject string
+	Body    string
+}
+
 type CustomClaims struct {
 	TokenType string
 	ID        string `json:"id"`
