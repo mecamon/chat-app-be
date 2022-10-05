@@ -2,11 +2,13 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	appi18n "github.com/mecamon/chat-app-be/i18n"
 	json_web_token "github.com/mecamon/chat-app-be/interface/json-web-token"
-	"github.com/mecamon/chat-app-be/interface/services"
 	"github.com/mecamon/chat-app-be/models"
+	"github.com/mecamon/chat-app-be/use-cases/interactors"
 	"github.com/mecamon/chat-app-be/use-cases/presenters"
+	"github.com/mecamon/chat-app-be/use-cases/repositories"
 	"github.com/mecamon/chat-app-be/utils"
 	"net/http"
 
@@ -14,21 +16,18 @@ import (
 )
 
 type AuthController struct {
-	app         *config.App
-	mLocales    *appi18n.MultiLocales
-	authService *services.Auth
+	app      *config.App
+	mLocales *appi18n.MultiLocales
+	authRepo repositories.AuthRepo
 }
 
 var auth *AuthController
 
-func InitAuthController(
-	app *config.App,
-	loc *appi18n.MultiLocales,
-	authServ *services.Auth) *AuthController {
+func InitAuthController(app *config.App, loc *appi18n.MultiLocales, authRepo repositories.AuthRepo) *AuthController {
 	auth = &AuthController{
-		app:         app,
-		mLocales:    loc,
-		authService: authServ,
+		app:      app,
+		mLocales: loc,
+		authRepo: authRepo,
 	}
 	return auth
 }
@@ -48,12 +47,19 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 	}
 
-	insertedID, errSlice := c.authService.Register(uEntry)
-	if len(errSlice) > 0 {
+	_, errSlice := interactors.EvalRegistryEntry(uEntry)
+	if len(errSlice) != 0 {
 		errMessages := presenters.ErrMessages(locales, errSlice)
-		if err := utils.JSONResponse(w, http.StatusBadRequest, errMessages); err != nil {
-			panic(err)
-		}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+
+	completedU := interactors.CompleteRegEntry(uEntry)
+	insertedID, err := c.authRepo.Register(completedU)
+	if err != nil {
+		errMsg := locales.GetMsg("EmailAddressTaken", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusConflict, errMessages)
 		return
 	}
 
@@ -84,12 +90,11 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 	}
 
-	ID, errColl := c.authService.Login(uEntry.Email, uEntry.Password)
-	if len(errColl) != 0 {
-		errMessages := presenters.ErrMessages(locales, errColl)
-		if err := utils.JSONResponse(w, http.StatusBadRequest, errMessages); err != nil {
-			panic(err)
-		}
+	ID, err := c.authRepo.Login(uEntry.Email, uEntry.Password)
+	if err != nil {
+		errMsg := locales.GetMsg("InvalidEmailOrPassword", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 		return
 	}
 
@@ -119,24 +124,29 @@ func (c *AuthController) SendRecoveryLink(w http.ResponseWriter, r *http.Request
 		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 	}
 
-	_, errSlice := c.authService.SendRecoverPassLink(uEntry.Email)
-	if len(errSlice) != 0 {
-		for _, ee := range errSlice {
-			if ee.MessageID == "ServerError" {
-				_ = utils.JSONResponse(w, http.StatusInternalServerError, nil)
-				return
-			}
-			if ee.MessageID == "EmailDoesNotExist" {
-				_ = utils.JSONResponse(w, http.StatusNotFound, nil)
-				return
-			}
-		}
-		errMessages := presenters.ErrMessages(locales, errSlice)
-		if err := utils.JSONResponse(w, http.StatusBadRequest, errMessages); err != nil {
-			panic(err)
-		}
+	hasValidEmail := utils.HasValidEmail(uEntry.Email)
+	if !hasValidEmail {
+		errMsg := locales.GetMsg("InvalidEmail", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 		return
 	}
+
+	user, err := c.authRepo.FindByEmail(uEntry.Email)
+	if err != nil {
+		errMsg := locales.GetMsg("EmailDoesNotExist", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusNotFound, errMessages)
+	}
+
+	ID := user.ID.Hex()
+	token, err := json_web_token.Generate(ID, "")
+	if err != nil {
+		panic(w)
+	}
+
+	//the link formatted
+	_ = fmt.Sprintf("%s?t=%s", c.app.RecoverHostAndPath, token)
 
 	//TODO: send email with the link the user
 
@@ -162,22 +172,27 @@ func (c *AuthController) ChangePass(w http.ResponseWriter, r *http.Request) {
 	locales := c.mLocales.GetSpeLocales(lang)
 	ID := customClaims.ID
 
-	body := struct {
+	uEntry := struct {
 		NewPassword string `json:"newPassword"`
 	}{}
 
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&uEntry); err != nil {
 		errMsg := locales.GetMsg("ErrorParsingBody", nil)
 		errMessages := []string{errMsg}
 		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 	}
 
-	errSlice := c.authService.ChangePassword(ID, body.NewPassword)
-	if len(errSlice) != 0 {
-		errMessages := presenters.ErrMessages(locales, errSlice)
-		if err := utils.JSONResponse(w, http.StatusBadRequest, errMessages); err != nil {
-			panic(err)
-		}
+	if hasValidPass := utils.HasValidPass(uEntry.NewPassword); !hasValidPass {
+		errMsg := locales.GetMsg("InvalidPassword", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+
+	if err := c.authRepo.ChangePassword(ID, uEntry.NewPassword); err != nil {
+		errMsg := locales.GetMsg("ErrorChangingPass", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 		return
 	}
 

@@ -1,6 +1,3 @@
-//go:build integration
-// +build integration
-
 package services
 
 import (
@@ -8,8 +5,6 @@ import (
 	"fmt"
 	"github.com/mecamon/chat-app-be/config"
 	"github.com/mecamon/chat-app-be/infraestructure/data"
-	repositories_impl "github.com/mecamon/chat-app-be/interface/repositories"
-	"github.com/mecamon/chat-app-be/use-cases/repositories"
 	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"os"
@@ -17,14 +12,11 @@ import (
 )
 
 var app *config.App
-var authRepo repositories.AuthRepo
-var authTestService *Auth
 var mailTestService *Mail
 
 func TestMain(m *testing.M) {
 	dbConn := runDB()
-	runRepos(dbConn)
-	runServices(app, repositories_impl.GetAuthRepo())
+	runServices(app)
 	code := m.Run()
 	shutdown(dbConn)
 	os.Exit(code)
@@ -48,12 +40,7 @@ func runDB() *data.DB {
 	return dbConn
 }
 
-func runRepos(dbConn *data.DB) {
-	authRepo = repositories_impl.InitAuthRepo(app, dbConn)
-}
-
-func runServices(app *config.App, repo repositories.AuthRepo) {
-	authTestService = InitAuth(app, repo)
+func runServices(app *config.App) {
 	mailTestService = InitMailService(app)
 }
 

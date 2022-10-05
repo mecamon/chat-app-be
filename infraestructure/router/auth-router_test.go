@@ -35,7 +35,7 @@ func TestAuthController_Register(t *testing.T) {
 			Email:    "juan@mail.com",
 			Password: "JuanMan123456",
 			Phone:    8097654312,
-		}, expectedCode: http.StatusBadRequest, expectedErrors: 1},
+		}, expectedCode: http.StatusConflict, expectedErrors: 1},
 		{testName: "no name", uEntry: models.User{
 			Name:     "",
 			Bio:      "Yo soy Juan",

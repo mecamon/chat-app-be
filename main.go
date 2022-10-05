@@ -66,8 +66,7 @@ func runDB(app *config.App) *data.DB {
 }
 
 func runRepos(app *config.App, dbConn *data.DB) {
-	authRepo := repository.InitAuthRepo(app, dbConn)
-	services.InitAuth(app, authRepo)
+	_ = repository.InitAuthRepo(app, dbConn)
 	services.InitMailService(app)
 }
 
