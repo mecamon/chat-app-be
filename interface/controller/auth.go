@@ -14,10 +14,9 @@ import (
 )
 
 type AuthController struct {
-	app          *config.App
-	mLocales     *appi18n.MultiLocales
-	authService  *services.Auth
-	emailService *services.Mail
+	app         *config.App
+	mLocales    *appi18n.MultiLocales
+	authService *services.Auth
 }
 
 var auth *AuthController
@@ -25,13 +24,11 @@ var auth *AuthController
 func InitAuthController(
 	app *config.App,
 	loc *appi18n.MultiLocales,
-	authServ *services.Auth,
-	emailServ *services.Mail) *AuthController {
+	authServ *services.Auth) *AuthController {
 	auth = &AuthController{
-		app:          app,
-		mLocales:     loc,
-		authService:  authServ,
-		emailService: emailServ,
+		app:         app,
+		mLocales:    loc,
+		authService: authServ,
 	}
 	return auth
 }

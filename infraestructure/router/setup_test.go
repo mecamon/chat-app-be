@@ -35,8 +35,8 @@ func TestMain(m *testing.M) {
 	dbConn := runDB()
 	authTestRepo = repositories_impl.InitAuthRepo(app, dbConn)
 	authTestService := services.InitAuth(app, authTestRepo)
-	mailTestService := services.InitMailService(app)
-	controller.InitAuthController(app, mLoc, authTestService, mailTestService)
+	_ = services.InitMailService(app)
+	controller.InitAuthController(app, mLoc, authTestService)
 
 	runRouter()
 	code := m.Run()

@@ -24,7 +24,6 @@ func TestGetMail(t *testing.T) {
 	}
 }
 
-//
 //func TestEmail_SendRecoverPassLink(t *testing.T) {
 //	info := models.EmailInfo{
 //		Address: app.EmailAcc,
