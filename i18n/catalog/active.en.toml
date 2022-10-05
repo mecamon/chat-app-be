@@ -8,6 +8,10 @@ description = "Error message for invalid password"
 one = "password must contain at least one of this a-z, A-Z 0-9 and be longer than 8 characters"
 other = "password must contain at least one of this a-z, A-Z 0-9 and be longer than 8 characters"
 
+[ErrorParsingBody]
+description = "Error message for invalid body request"
+other = "error parsing the body request. Make sure you are sending the correct structure"
+
 [ErrorChangingPass]
 description = "Error message for changing password"
 one = "something went wrong changing the password"

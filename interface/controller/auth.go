@@ -46,17 +46,17 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 
 	var uEntry models.User
 	if err := json.NewDecoder(r.Body).Decode(&uEntry); err != nil {
-		panic(w)
+		errMsg := locales.GetMsg("ErrorParsingBody", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 	}
 
 	insertedID, errSlice := c.authService.Register(uEntry)
 	if len(errSlice) > 0 {
 		errMessages := presenters.ErrMessages(locales, errSlice)
-		body, err := json.Marshal(errMessages)
-		if err != nil {
-			panic(w)
+		if err := utils.JSONResponse(w, http.StatusBadRequest, errMessages); err != nil {
+			panic(err)
 		}
-		utils.Response(w, http.StatusBadRequest, body)
 		return
 	}
 
@@ -68,11 +68,9 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 		Token string `json:"token"`
 	}{Token: token}
 
-	body, err := json.Marshal(regSuccess)
-	if err != nil {
-		panic(w)
+	if err := utils.JSONResponse(w, http.StatusCreated, regSuccess); err != nil {
+		panic(err)
 	}
-	utils.Response(w, http.StatusCreated, body)
 }
 
 func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
@@ -84,17 +82,17 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&uEntry); err != nil {
-		panic(w)
+		errMsg := locales.GetMsg("ErrorParsingBody", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 	}
 
 	ID, errColl := c.authService.Login(uEntry.Email, uEntry.Password)
 	if len(errColl) != 0 {
 		errMessages := presenters.ErrMessages(locales, errColl)
-		body, err := json.Marshal(errMessages)
-		if err != nil {
-			panic(w)
+		if err := utils.JSONResponse(w, http.StatusBadRequest, errMessages); err != nil {
+			panic(err)
 		}
-		utils.Response(w, http.StatusBadRequest, body)
 		return
 	}
 
@@ -106,11 +104,9 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		Token string `json:"token"`
 	}{Token: token}
 
-	body, err := json.Marshal(regSuccess)
-	if err != nil {
-		panic(w)
+	if err := utils.JSONResponse(w, http.StatusOK, regSuccess); err != nil {
+		panic(err)
 	}
-	utils.Response(w, http.StatusOK, body)
 }
 
 func (c *AuthController) SendRecoveryLink(w http.ResponseWriter, r *http.Request) {
@@ -121,47 +117,47 @@ func (c *AuthController) SendRecoveryLink(w http.ResponseWriter, r *http.Request
 		Email string `json:"email"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&uEntry); err != nil {
-		panic(w)
+		errMsg := locales.GetMsg("ErrorParsingBody", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 	}
 
-	link, errSlice := c.authService.SendRecoverPassLink(uEntry.Email)
+	_, errSlice := c.authService.SendRecoverPassLink(uEntry.Email)
 	if len(errSlice) != 0 {
 		for _, ee := range errSlice {
 			if ee.MessageID == "ServerError" {
-				utils.Response(w, http.StatusInternalServerError, nil)
+				_ = utils.JSONResponse(w, http.StatusInternalServerError, nil)
 				return
 			}
 			if ee.MessageID == "EmailDoesNotExist" {
-				utils.Response(w, http.StatusNotFound, nil)
+				_ = utils.JSONResponse(w, http.StatusNotFound, nil)
 				return
 			}
 		}
 		errMessages := presenters.ErrMessages(locales, errSlice)
-		body, err := json.Marshal(errMessages)
-		if err != nil {
-			panic(w)
+		if err := utils.JSONResponse(w, http.StatusBadRequest, errMessages); err != nil {
+			panic(err)
 		}
-		utils.Response(w, http.StatusBadRequest, body)
 		return
 	}
 
 	//TODO: send email with the link the user
 
-	resSuccess := struct {
-		Link string `json:"link"`
-	}{Link: link}
+	//resSuccess := struct {
+	//	Link string `json:"link"`
+	//}{Link: link}
 
-	body, err := json.Marshal(resSuccess)
-	if err != nil {
-		panic(w)
+	if err := utils.JSONResponse(w, http.StatusOK, nil); err != nil {
+		panic(err)
 	}
-	utils.Response(w, http.StatusOK, body)
 }
 
 func (c *AuthController) ChangePass(w http.ResponseWriter, r *http.Request) {
 	customClaims, err := json_web_token.Validate(r.Header.Get("Authorization"))
 	if err != nil {
-		utils.Response(w, http.StatusUnauthorized, nil)
+		if err := utils.JSONResponse(w, http.StatusUnauthorized, nil); err != nil {
+			panic(err)
+		}
 		return
 	}
 
@@ -174,19 +170,21 @@ func (c *AuthController) ChangePass(w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		panic(w)
+		errMsg := locales.GetMsg("ErrorParsingBody", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 	}
 
 	errSlice := c.authService.ChangePassword(ID, body.NewPassword)
 	if len(errSlice) != 0 {
 		errMessages := presenters.ErrMessages(locales, errSlice)
-		bodyRes, err := json.Marshal(errMessages)
-		if err != nil {
-			panic(w)
+		if err := utils.JSONResponse(w, http.StatusBadRequest, errMessages); err != nil {
+			panic(err)
 		}
-		utils.Response(w, http.StatusBadRequest, bodyRes)
 		return
 	}
 
-	utils.Response(w, http.StatusOK, nil)
+	if err := utils.JSONResponse(w, http.StatusOK, nil); err != nil {
+		panic(err)
+	}
 }
