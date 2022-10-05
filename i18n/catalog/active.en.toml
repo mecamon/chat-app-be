@@ -27,6 +27,10 @@ description = "Error message for phone too short"
 one = "phone number must be at least {{.Count}} characters long"
 other = "phone number must be at least {{.Count}} characters long"
 
+[PhoneWrongFormat]
+description = "Error message for phone with wrong characters"
+other = "phone number can only contain numbers"
+
 [EmailAddressTaken]
 description = "Error message for email already in use"
 one = "the email inserted is already in use"

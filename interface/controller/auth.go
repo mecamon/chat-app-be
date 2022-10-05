@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mecamon/chat-app-be/config"
 	appi18n "github.com/mecamon/chat-app-be/i18n"
 	json_web_token "github.com/mecamon/chat-app-be/interface/json-web-token"
 	"github.com/mecamon/chat-app-be/models"
@@ -11,8 +12,7 @@ import (
 	"github.com/mecamon/chat-app-be/use-cases/repositories"
 	"github.com/mecamon/chat-app-be/utils"
 	"net/http"
-
-	"github.com/mecamon/chat-app-be/config"
+	"strconv"
 )
 
 type AuthController struct {
@@ -40,12 +40,29 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 	lang := r.Header.Get("Accept-Language")
 	locales := c.mLocales.GetSpeLocales(lang)
 
-	var uEntry models.User
-	if err := json.NewDecoder(r.Body).Decode(&uEntry); err != nil {
+	if err := r.ParseMultipartForm(128); err != nil {
 		errMsg := locales.GetMsg("ErrorParsingBody", nil)
 		errMessages := []string{errMsg}
 		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
 	}
+
+	uEntry := models.User{
+		Name:     r.Form.Get("name"),
+		Bio:      r.Form.Get("bio"),
+		Email:    r.Form.Get("email"),
+		Password: r.Form.Get("password"),
+	}
+
+	phoneStr := r.Form.Get("phone")
+	phone, err := strconv.ParseInt(phoneStr, 10, 0)
+	if err != nil {
+		errMsg := locales.GetMsg("PhoneWrongFormat", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+	uEntry.Phone = phone
 
 	_, errSlice := interactors.EvalRegistryEntry(uEntry)
 	if len(errSlice) != 0 {

@@ -9,8 +9,10 @@ import (
 	json_web_token "github.com/mecamon/chat-app-be/interface/json-web-token"
 	"github.com/mecamon/chat-app-be/models"
 	"github.com/mecamon/chat-app-be/utils"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -54,10 +56,20 @@ func TestAuthController_Register(t *testing.T) {
 
 	for _, tt := range registerTests {
 		t.Log(tt.testName)
-		body, _ := json.Marshal(&tt.uEntry)
+
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		writer.WriteField("name", tt.uEntry.Name)
+		writer.WriteField("bio", tt.uEntry.Bio)
+		writer.WriteField("email", tt.uEntry.Email)
+		writer.WriteField("password", tt.uEntry.Password)
+		writer.WriteField("phone", strconv.FormatInt(tt.uEntry.Phone, 10))
+		writer.Close()
 
 		rr := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(body))
+		req := httptest.NewRequest(http.MethodPost, "/api/auth/register", body)
+		req.Header.Add("Content-Type", writer.FormDataContentType())
+
 		mainRouter.ServeHTTP(rr, req)
 
 		if rr.Code != tt.expectedCode {
