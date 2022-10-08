@@ -10,12 +10,12 @@
           "description": "messages must be an array"
         },
         "created_at": {
-          "bsonType": "timestamp",
-          "description": "must be a timestamp"
+          "bsonType": "long",
+          "description": "must be a long"
         },
         "updated_at": {
-          "bsonType": "timestamp",
-          "description": "must be a timestamp"
+          "bsonType": "long",
+          "description": "must be a long"
         }
       }
     }

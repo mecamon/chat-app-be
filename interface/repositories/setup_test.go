@@ -1,6 +1,3 @@
-//go:build integration
-// +build integration
-
 package repositories_impl
 
 import (
@@ -17,6 +14,7 @@ import (
 
 var dbConn *data.DB
 var authTestRepo repositories.AuthRepo
+var groupChatTestRepo repositories.GroupChat
 var app *config.App
 
 func TestMain(m *testing.M) {
@@ -42,6 +40,7 @@ func run() *data.DB {
 		panic(err.Error())
 	}
 	authTestRepo = InitAuthRepo(app, dbConn)
+	groupChatTestRepo = InitGroupChatRepo(app, dbConn)
 	return dbConn
 }
 
@@ -51,6 +50,12 @@ func shutdown(dbConn *data.DB) {
 	if err != nil {
 		log.Println(err.Error())
 	}
+
+	//gColl := dbConn.Client.Database(app.DBName).Collection("chat_groups")
+	//_, err = gColl.DeleteMany(context.TODO(), bson.D{})
+	//if err != nil {
+	//	log.Println(err.Error())
+	//}
 
 	if err := dbConn.Client.Disconnect(context.TODO()); err != nil {
 		log.Println(err.Error())

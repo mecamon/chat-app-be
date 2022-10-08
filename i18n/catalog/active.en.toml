@@ -22,6 +22,16 @@ description = "Error message for name too short"
 one = "name must be at least {{.Count}} characters long"
 other = "name must be at least {{.Count}} characters long"
 
+[NameTooLong]
+description = "Error message for name too long"
+one = "name must be at most {{.Count}} characters long"
+other = "name must be at most {{.Count}} characters long"
+
+[DescriptionTooLong]
+description = "Error message for name too long"
+one = "description must be at most {{.Count}} characters long"
+other = "description must be at most {{.Count}} characters long"
+
 [PhoneTooShort]
 description = "Error message for phone too short"
 one = "phone number must be at least {{.Count}} characters long"
@@ -48,11 +58,7 @@ other = "wrong email or password"
 
 [WrongFileType]
 description = "Error message for wrong file type"
-other = "file type has to be {{.Types}}"
-
-[FileTooBig]
-description = "Error message for files too big"
-other = "file cannot be bigger than {{.MaxSize}}"
+other = "file type has to be {{.Types}} and not bigger than {{.Size}} bytes"
 
 [RequiredField]
 description = "Error message for required field"

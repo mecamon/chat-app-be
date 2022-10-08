@@ -16,6 +16,7 @@ import (
 )
 
 func main() {
+
 	config.SetConfig()
 	app := config.GetConfig()
 
@@ -25,6 +26,11 @@ func main() {
 	}
 
 	dbConn := runDB(app)
+	defer func() {
+		if err := dbConn.Client.Connect(context.TODO()); err != nil {
+			panic(err.Error())
+		}
+	}()
 	runRepos(app, dbConn)
 	handler := runRouters()
 
@@ -49,11 +55,6 @@ func runDB(app *config.App) *data.DB {
 		app.DBName)
 
 	dbConn, err := data.CreateDBClient(dbConnUri)
-	defer func() {
-		if err := dbConn.Client.Connect(context.TODO()); err != nil {
-			panic(err.Error())
-		}
-	}()
 	if err != nil {
 		panic(err.Error())
 	}

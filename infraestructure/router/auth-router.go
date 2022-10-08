@@ -2,6 +2,7 @@ package router
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/mecamon/chat-app-be/interface/controller"
 )
@@ -14,8 +15,8 @@ func AddAuthSubRouter() {
 
 	authController := controller.GetAuthController()
 	s := main.R.PathPrefix("/api/auth").Subrouter()
-	s.HandleFunc("/register", authController.Register)
-	s.HandleFunc("/login", authController.Login)
-	s.HandleFunc("/recover", authController.SendRecoveryLink)
-	s.HandleFunc("/change-password", authController.ChangePass)
+	s.HandleFunc("/register", authController.Register).Methods(http.MethodPost)
+	s.HandleFunc("/login", authController.Login).Methods(http.MethodPost)
+	s.HandleFunc("/recover", authController.SendRecoveryLink).Methods(http.MethodPost)
+	s.HandleFunc("/change-password", authController.ChangePass).Methods(http.MethodPost)
 }

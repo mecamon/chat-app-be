@@ -15,7 +15,7 @@ type User struct {
 	PhotoURL  string             `bson:"photo_url,omitempty" json:"photoURL"`
 	IsActive  bool               `bson:"is_active,omitempty" json:"isActive"`
 	CreatedAt int64              `bson:"created_at,omitempty" json:"createdAt"`
-	UpdatedAt int64              `bson:"updated_at,omitempty" json:"updated_at"`
+	UpdatedAt int64              `bson:"updated_at,omitempty" json:"updatedAt"`
 }
 
 type UserDTO struct {
@@ -25,6 +25,26 @@ type UserDTO struct {
 	Email    string             `bson:"email,omitempty" json:"email"`
 	Phone    int64              `bson:"phone,omitempty" json:"phone"`
 	PhotoURL string             `bson:"photo_url,omitempty" json:"photoURL"`
+}
+
+type GroupChat struct {
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name         string             `bson:"name,omitempty" json:"name"`
+	Description  string             `bson:"description,omitempty" json:"description"`
+	ImageURL     string             `bson:"image_url,omitempty" json:"imageURL"`
+	GroupOwner   primitive.ObjectID `bson:"group_owner,omitempty" json:"groupOwner"`
+	Participants []User             `bson:"participants,omitempty" json:"participants"`
+	CreatedAt    int64              `bson:"created_at,omitempty" json:"createdAt"`
+	UpdatedAt    int64              `bson:"updated_at,omitempty" json:"updatedAt"`
+}
+
+type GroupChatDTO struct {
+	ID           string `bson:"_id,omitempty" json:"id"`
+	Name         string `bson:"name,omitempty" json:"name"`
+	Description  string `bson:"description,omitempty" json:"description"`
+	ImageURL     string `bson:"image_url,omitempty" json:"imageURL"`
+	GroupOwner   string `bson:"group_owner,omitempty" json:"groupOwner"`
+	Participants []User `bson:"participants,omitempty" json:"participants"`
 }
 
 type EmailInfo struct {
@@ -37,4 +57,9 @@ type CustomClaims struct {
 	TokenType string
 	ID        string `json:"id"`
 	*jwt.RegisteredClaims
+}
+
+type FileInfo struct {
+	Size        int64
+	ContentType string
 }

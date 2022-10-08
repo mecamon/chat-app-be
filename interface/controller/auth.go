@@ -6,14 +6,22 @@ import (
 	"github.com/mecamon/chat-app-be/config"
 	appi18n "github.com/mecamon/chat-app-be/i18n"
 	json_web_token "github.com/mecamon/chat-app-be/interface/json-web-token"
+	"github.com/mecamon/chat-app-be/interface/services"
 	"github.com/mecamon/chat-app-be/models"
 	"github.com/mecamon/chat-app-be/use-cases/interactors"
 	"github.com/mecamon/chat-app-be/use-cases/presenters"
 	"github.com/mecamon/chat-app-be/use-cases/repositories"
 	"github.com/mecamon/chat-app-be/utils"
+	"log"
 	"net/http"
 	"strconv"
 )
+
+const (
+	maxFileSize int64 = 5242880
+)
+
+var fileAcceptedContentTypes = []string{"image/jpg", "image/jpeg", "image/png"}
 
 type AuthController struct {
 	app      *config.App
@@ -53,6 +61,7 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 		Email:    r.Form.Get("email"),
 		Password: r.Form.Get("password"),
 	}
+	file, fileHeader, _ := r.FormFile("file")
 
 	phoneStr := r.Form.Get("phone")
 	phone, err := strconv.ParseInt(phoneStr, 10, 0)
@@ -69,6 +78,32 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 		errMessages := presenters.ErrMessages(locales, errSlice)
 		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 		return
+	} else if len(errSlice) != 0 && file != nil {
+		fileInfo := models.FileInfo{
+			Size:        fileHeader.Size,
+			ContentType: fileHeader.Header.Get("Content-Type"),
+		}
+
+		hasAValidFile := interactors.ValidFile(fileInfo, maxFileSize, fileAcceptedContentTypes...)
+		if !hasAValidFile {
+			errMsg := locales.GetMsg("WrongFileType", map[string]interface{}{
+				"Types": fileAcceptedContentTypes,
+				"Size":  maxFileSize,
+			})
+			errMessages := []string{errMsg}
+			_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+			return
+		}
+
+		storage, err := services.GetStorage()
+		if err != nil {
+			log.Println(err.Error())
+		}
+		photoURL, err := storage.UploadImage(file, uEntry.Email)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		uEntry.PhotoURL = photoURL
 	}
 
 	completedU := interactors.CompleteRegEntry(uEntry)

@@ -8,3 +8,11 @@ type AuthRepo interface {
 	FindByEmail(email string) (models.User, error)
 	ChangePassword(id, newPassword string) error
 }
+
+type GroupChat interface {
+	Create(uid string, group models.GroupChat) (string, error)
+	Update(groupU models.GroupChat) error
+	Delete(ownerID, groupID string) error
+	LoadAll(uid string, filters map[string]interface{}) ([]models.GroupChat, error)
+	AddUserToChat(user models.User, groupID string) error
+}

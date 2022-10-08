@@ -3,6 +3,7 @@ package interactors
 import (
 	"fmt"
 	cErrors "github.com/mecamon/chat-app-be/use-cases/c-errors"
+	"regexp"
 	"time"
 
 	"github.com/mecamon/chat-app-be/models"
@@ -57,4 +58,23 @@ func CompleteRegEntry(uEntry models.User) models.User {
 	uEntry.CreatedAt = time.Now().Unix()
 	uEntry.UpdatedAt = time.Now().Unix()
 	return uEntry
+}
+
+func ValidFile(fileInfo models.FileInfo, maxSize int64, contentType ...string) bool {
+	if fileInfo.Size > maxSize {
+		return false
+	}
+	var pattern string
+
+	for i, c := range contentType {
+		if i == 0 {
+			pattern += c
+		} else {
+			pattern += "|"
+			pattern += c
+		}
+	}
+
+	reg, _ := regexp.Compile(pattern)
+	return reg.MatchString(fileInfo.ContentType)
 }

@@ -2,6 +2,7 @@ package router
 
 import (
 	"errors"
+	"github.com/mecamon/chat-app-be/interface/middlewares"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -22,11 +23,14 @@ func GetMain() (*Main, error) {
 
 func SetRouter() {
 	r := mux.NewRouter()
+
+	//TODO remove this endpoint
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Welcome to the chat app"))
 	}).Methods("GET")
+	r.Use(middlewares.Cors)
 
 	main = &Main{
 		R: r,

@@ -45,7 +45,7 @@ func TestAuthRepoImpl_Register(t *testing.T) {
 			CreatedAt: time.Now().Unix(),
 			UpdatedAt: time.Now().Unix(),
 		}, expectedError: false},
-		{testName: "email in user", uEntry: models.User{
+		{testName: "email in use", uEntry: models.User{
 			Name:      "Auth test repo-2",
 			Bio:       "Some random user 2",
 			Email:     "valid-auth@mail.com",
