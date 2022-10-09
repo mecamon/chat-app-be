@@ -92,6 +92,31 @@ func (a *AuthRepoImpl) FindByEmail(email string) (models.User, error) {
 	return user, nil
 }
 
+func (a *AuthRepoImpl) FindByID(uid string) (models.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	var user models.User
+
+	ID, err := primitive.ObjectIDFromHex(uid)
+	if err != nil {
+		return user, err
+	}
+
+	uColl := a.DBConn.Client.Database(a.App.DBName).Collection("users")
+	filter := bson.D{{"_id", ID}}
+	result := uColl.FindOne(ctx, filter)
+
+	if result.Err() != nil {
+		return user, result.Err()
+	}
+	if err := result.Decode(&user); err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
 func (a *AuthRepoImpl) ChangePassword(id, newPassword string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

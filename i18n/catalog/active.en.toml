@@ -3,6 +3,26 @@ description = "Error message for invalid email address"
 one = "invalid email address"
 other = "invalid email address"
 
+[IDInvalidType]
+description = "Error message for invalid ID type"
+other = "ID's have to be string type"
+
+[NothingWasUpdated]
+description = "Error message failed update"
+other = "nothing was updated. Make sure you are the owner of this group"
+
+[NothingWasDeleted]
+description = "Error message failed delete"
+other = "nothing was deleted. Make sure you are the owner of this group"
+
+[ErrorGettingChatGroups]
+description = "Error message for failed getting groups"
+other = "could not get any groups"
+
+[ErrorAddingUserToChat]
+description = "Error message for failed adding user to chat"
+other = "could not add user to chat. Make sure you are sending an existing groupID"
+
 [InvalidPassword]
 description = "Error message for invalid password"
 one = "password must contain at least one of this a-z, A-Z 0-9 and be longer than 8 characters"
@@ -72,6 +92,9 @@ other = "{{.QueryParam}} type has to be {{.ExpectedType}}"
 description = "Message for invalid argument"
 other = "the type of the route param is not correct"
 
+[ErrorCreatingGroup]
+description = "Message error group creation in db"
+other = "the group could not be created"
 
 [ServerError]
 description = "Generic error"

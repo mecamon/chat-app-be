@@ -51,11 +51,11 @@ func shutdown(dbConn *data.DB) {
 		log.Println(err.Error())
 	}
 
-	//gColl := dbConn.Client.Database(app.DBName).Collection("chat_groups")
-	//_, err = gColl.DeleteMany(context.TODO(), bson.D{})
-	//if err != nil {
-	//	log.Println(err.Error())
-	//}
+	gColl := dbConn.Client.Database(app.DBName).Collection("chat_groups")
+	_, err = gColl.DeleteMany(context.TODO(), bson.D{})
+	if err != nil {
+		log.Println(err.Error())
+	}
 
 	if err := dbConn.Client.Disconnect(context.TODO()); err != nil {
 		log.Println(err.Error())

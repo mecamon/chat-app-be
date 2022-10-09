@@ -171,6 +171,59 @@ func TestAuthRepoImpl_FindByEmail(t *testing.T) {
 	}
 }
 
+func TestAuthRepoImpl_FindByID(t *testing.T) {
+	password := "validPassword12344"
+	user := models.User{
+		Name:      "user to FindByID",
+		Bio:       "This is an user to find by ID",
+		Email:     "findby@id.com",
+		Password:  password,
+		Phone:     8098907654,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	hashPassword, err := utils.GenerateHash(user.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	user.Password = hashPassword
+
+	insertedID, err := authRepoImpl.Register(user)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	notExistingID := "3eb3d668b31de5d588f42a6d"
+
+	var findByIDTests = []struct {
+		testName, uid string
+		userFound     bool
+		expectedErr   error
+	}{
+		{testName: "user found", uid: insertedID, userFound: true, expectedErr: nil},
+		{testName: "user not found", uid: notExistingID, userFound: false, expectedErr: errors.New("has error")},
+	}
+
+	for _, tt := range findByIDTests {
+		t.Log("TEST NAME:", tt.testName)
+		u, err := authTestRepo.FindByID(tt.uid)
+
+		if tt.expectedErr == nil {
+			if err != nil {
+				t.Error("error was not expected, but got error:", err.Error())
+			}
+			if u.ID.Hex() != tt.uid {
+				t.Error("insertedID and user ID are NOT the same")
+			}
+		} else if tt.expectedErr != nil {
+			t.Log("USER:", u)
+			if err == nil {
+				t.Error("error was expected but did NOT get any")
+			}
+		}
+	}
+}
+
 func TestAuthRepoImpl_ChangePassword(t *testing.T) {
 	password := "validPassword12344"
 	user := models.User{
