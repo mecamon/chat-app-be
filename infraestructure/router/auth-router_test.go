@@ -282,7 +282,7 @@ func TestAuthController_ChangePass(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodPost, "/api/auth/change-password", bytes.NewReader(body))
+		req := httptest.NewRequest(http.MethodPost, "/api/auth/change_password", bytes.NewReader(body))
 		req.Header.Add("Authorization", tt.token)
 		mainRouter.ServeHTTP(rr, req)
 

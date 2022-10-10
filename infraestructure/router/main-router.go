@@ -39,4 +39,5 @@ func SetRouter() {
 
 func (m *Main) AddSubRouters() {
 	AddAuthSubRouter()
+	AddChatGroupsSubRouter()
 }

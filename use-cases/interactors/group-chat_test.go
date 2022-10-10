@@ -5,6 +5,7 @@ package interactors
 
 import (
 	"github.com/mecamon/chat-app-be/models"
+	"github.com/mecamon/chat-app-be/utils"
 	"testing"
 )
 
@@ -14,10 +15,10 @@ func TestEvalGroupInfo(t *testing.T) {
 		groupInfo            models.GroupChat
 		expectedNumberErrors int
 	}{
-		{testName: "name too short", groupInfo: models.GroupChat{Name: "d", Description: wordsGenerator(minNameLength - 1)}, expectedNumberErrors: 1},
-		{testName: "name too long", groupInfo: models.GroupChat{Name: wordsGenerator(maxLengthName + 1), Description: "asodnasdandas"}, expectedNumberErrors: 1},
-		{testName: "description too long", groupInfo: models.GroupChat{Name: "Done", Description: wordsGenerator(maxLengthDescription + 1)}, expectedNumberErrors: 1},
-		{testName: "valid group info", groupInfo: models.GroupChat{Name: "My group", Description: wordsGenerator(60)}, expectedNumberErrors: 0},
+		{testName: "name too short", groupInfo: models.GroupChat{Name: "d", Description: utils.WordsGenerator(minNameLength - 1)}, expectedNumberErrors: 1},
+		{testName: "name too long", groupInfo: models.GroupChat{Name: utils.WordsGenerator(maxLengthName + 1), Description: "asodnasdandas"}, expectedNumberErrors: 1},
+		{testName: "description too long", groupInfo: models.GroupChat{Name: "Done", Description: utils.WordsGenerator(maxLengthDescription + 1)}, expectedNumberErrors: 1},
+		{testName: "valid group info", groupInfo: models.GroupChat{Name: "My group", Description: utils.WordsGenerator(60)}, expectedNumberErrors: 0},
 	}
 
 	for _, tt := range evalGroupInfoTests {
@@ -27,14 +28,6 @@ func TestEvalGroupInfo(t *testing.T) {
 			t.Errorf("errors expected are %d but got %d", tt.expectedNumberErrors, len(errors))
 		}
 	}
-}
-
-func wordsGenerator(wordLength int) string {
-	var word = ""
-	for i := 0; i < wordLength; i++ {
-		word += "a"
-	}
-	return word
 }
 
 func TestCompleteGroupInfo(t *testing.T) {

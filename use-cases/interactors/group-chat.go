@@ -8,23 +8,23 @@ import (
 )
 
 const (
-	minLengthName        int = 2
-	maxLengthName        int = 30
-	maxLengthDescription int = 100
+	MinChatLengthName int = 2
+	MaxChatLengthName int = 30
+	MaxChatLengthDes  int = 100
 )
 
 func EvalGroupInfo(group models.GroupChat) (bool, []*cErrors.Custom) {
 	var errSlices []*cErrors.Custom
 
-	if len(group.Name) > maxLengthName {
+	if len(group.Name) > MaxChatLengthName {
 		errSlices = append(errSlices, &cErrors.Custom{
 			Property:     "name",
 			MessageID:    "NameTooLong",
-			TemplateData: map[string]interface{}{"Count": maxLengthName},
+			TemplateData: map[string]interface{}{"Count": MaxChatLengthName},
 		})
 	}
 
-	if len(group.Name) < minLengthName {
+	if len(group.Name) < MinChatLengthName {
 		errSlices = append(errSlices, &cErrors.Custom{
 			Property:     "name",
 			MessageID:    "NameTooShort",
@@ -32,11 +32,11 @@ func EvalGroupInfo(group models.GroupChat) (bool, []*cErrors.Custom) {
 		})
 	}
 
-	if len(group.Description) > maxLengthDescription {
+	if len(group.Description) > MaxChatLengthDes {
 		errSlices = append(errSlices, &cErrors.Custom{
 			Property:     "description",
 			MessageID:    "DescriptionTooLong",
-			TemplateData: map[string]interface{}{"Count": maxLengthDescription},
+			TemplateData: map[string]interface{}{"Count": MaxChatLengthDes},
 		})
 	}
 
@@ -52,11 +52,11 @@ func CompleteGroupInfo(group models.GroupChat) models.GroupChat {
 func GroupInfoToUpdate(uid string, group models.GroupChatDTO) (models.GroupChat, error) {
 	var groupU models.GroupChat
 
-	ID, err := primitive.ObjectIDFromHex(uid)
+	OwnerID, err := primitive.ObjectIDFromHex(uid)
 	if err != nil {
 		return groupU, err
 	}
-	OwnerID, err := primitive.ObjectIDFromHex(group.GroupOwner)
+	ID, err := primitive.ObjectIDFromHex(group.ID)
 	if err != nil {
 		return groupU, err
 	}

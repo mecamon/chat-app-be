@@ -32,6 +32,7 @@ func main() {
 		}
 	}()
 	runRepos(app, dbConn)
+	services.InitMailService(app)
 	handler := runRouters()
 
 	srv := &http.Server{
@@ -68,8 +69,10 @@ func runDB(app *config.App) *data.DB {
 
 func runRepos(app *config.App, dbConn *data.DB) {
 	_ = repository.InitAuthRepo(app, dbConn)
-	services.InitMailService(app)
+	_ = repository.InitGroupChatRepo(app, dbConn)
 }
+
+// TODO: run controllers
 
 func runRouters() http.Handler {
 	router.SetRouter()

@@ -160,6 +160,12 @@ func (c *GroupChats) LoadAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	groupsF := presenters.FormatGroups(groups)
+
+	if groupsF == nil || len(groupsF) == 0 {
+		_ = utils.JSONResponse(w, http.StatusNoContent, groupsF)
+		return
+	}
+
 	_ = utils.JSONResponse(w, http.StatusOK, groupsF)
 }
 

@@ -1,6 +1,3 @@
-//go:build integration
-// +build integration
-
 package router
 
 import (
@@ -23,6 +20,7 @@ import (
 var app *config.App
 var mainRouter http.Handler
 var authTestRepo repositories.AuthRepo
+var chatGroupsTestRepo repositories.GroupChat
 
 func TestMain(m *testing.M) {
 	config.SetConfig()
@@ -34,8 +32,10 @@ func TestMain(m *testing.M) {
 
 	dbConn := runDB()
 	authTestRepo = repositories_impl.InitAuthRepo(app, dbConn)
+	chatGroupsTestRepo = repositories_impl.InitGroupChatRepo(app, dbConn)
 	_ = services.InitMailService(app)
 	controller.InitAuthController(app, mLoc, authTestRepo)
+	controller.InitGroupChats()
 
 	runRouter()
 	code := m.Run()

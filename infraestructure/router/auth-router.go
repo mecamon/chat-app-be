@@ -18,5 +18,5 @@ func AddAuthSubRouter() {
 	s.HandleFunc("/register", authController.Register).Methods(http.MethodPost)
 	s.HandleFunc("/login", authController.Login).Methods(http.MethodPost)
 	s.HandleFunc("/recover", authController.SendRecoveryLink).Methods(http.MethodPost)
-	s.HandleFunc("/change-password", authController.ChangePass).Methods(http.MethodPost)
+	s.HandleFunc("/change_password", authController.ChangePass).Methods(http.MethodPost)
 }
