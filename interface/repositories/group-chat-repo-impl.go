@@ -165,3 +165,51 @@ func (g GroupChatImpl) AddUserToChat(user models.User, groupID string) error {
 
 	return nil
 }
+
+func (g GroupChatImpl) AddImageURL(uid, groupID, imageURL string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	uObjectID, err := primitive.ObjectIDFromHex(uid)
+	if err != nil {
+		return err
+	}
+	groupObjectID, err := primitive.ObjectIDFromHex(groupID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.D{{"_id", groupObjectID}, {"group_owner", uObjectID}}
+	update := bson.D{{"$set", bson.D{{"image_url", imageURL}}}}
+
+	gColl := g.DBConn.Client.Database(g.App.DBName).Collection("chat_groups")
+	result := gColl.FindOneAndUpdate(ctx, filter, update)
+
+	if result.Err() != nil {
+		return result.Err()
+	}
+
+	return nil
+}
+
+func (g GroupChatImpl) RemoveImageURL(uid, groupID string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	uObjectID, err := primitive.ObjectIDFromHex(uid)
+	if err != nil {
+		return err
+	}
+	groupObjectID, err := primitive.ObjectIDFromHex(groupID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.D{{"_id", groupObjectID}, {"group_owner", uObjectID}}
+	update := bson.D{{"$set", bson.D{{"image_url", ""}}}}
+
+	gColl := g.DBConn.Client.Database(g.App.DBName).Collection("chat_groups")
+	gColl.FindOneAndUpdate(ctx, filter, update)
+
+	return nil
+}

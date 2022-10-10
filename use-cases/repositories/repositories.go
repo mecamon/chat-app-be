@@ -16,4 +16,6 @@ type GroupChat interface {
 	Delete(ownerID, groupID string) error
 	LoadAll(uid string, filters map[string]interface{}) ([]models.GroupChat, error)
 	AddUserToChat(user models.User, groupID string) error
+	AddImageURL(uid, groupID, imageURL string) error
+	RemoveImageURL(udi, groupID string) error
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/mecamon/chat-app-be/models"
 	"github.com/mecamon/chat-app-be/use-cases/repositories"
+	"github.com/mecamon/chat-app-be/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 	"time"
@@ -311,6 +312,131 @@ func TestGroupChatImpl_LoadAll(t *testing.T) {
 					t.Error("user is not in all groups returned")
 				}
 			}
+		}
+	}
+}
+
+func TestGroupChatImpl_AddImageURL(t *testing.T) {
+	user := models.User{
+		Name:      "add photo url user",
+		Bio:       "add image url user",
+		Email:     "addimageurl@user.com",
+		Password:  "validPass123",
+		Phone:     8091234567,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	hashedPass, err := utils.GenerateHash(user.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	user.Password = hashedPass
+	insertedUID, err := authTestRepo.Register(user)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	notOwnerID := "5eb3d668b31de5d588f42a7d"
+
+	chat := models.GroupChat{
+		Name:        "group to add image",
+		Description: "group to add image url",
+		CreatedAt:   time.Now().Unix(),
+		UpdatedAt:   time.Now().Unix(),
+	}
+	insertedGroupID, err := groupChatTestRepo.Create(insertedUID, chat)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var addImageURLTests = []struct {
+		testName string
+		uid      string
+		groupID  string
+		imageURL string
+		err      error
+	}{
+		{
+			testName: "not the owner of the group",
+			uid:      notOwnerID,
+			groupID:  insertedGroupID,
+			imageURL: "https://image.com",
+			err:      errors.New("has error"),
+		},
+		{
+			testName: "valid update",
+			uid:      insertedUID,
+			groupID:  insertedGroupID,
+			imageURL: "https://image.com",
+			err:      nil,
+		},
+	}
+
+	for _, tt := range addImageURLTests {
+		err := groupChatTestRepo.AddImageURL(tt.uid, tt.groupID, tt.imageURL)
+		if tt.err == nil && err != nil {
+			t.Errorf("was not expecting an error but got: %s", err.Error())
+		}
+	}
+}
+
+func TestGroupChatImpl_RemoveImageURL(t *testing.T) {
+	user := models.User{
+		Name:      "remove photo url user",
+		Bio:       "remove image url user",
+		Email:     "removeimageurl@user.com",
+		Password:  "validPass123",
+		Phone:     8091234567,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	hashedPass, err := utils.GenerateHash(user.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	user.Password = hashedPass
+	insertedUID, err := authTestRepo.Register(user)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	notOwnerID := "5eb3d668b31de5d588f42a7d"
+
+	chat := models.GroupChat{
+		Name:        "group to remove image",
+		Description: "group to remove image url",
+		CreatedAt:   time.Now().Unix(),
+		UpdatedAt:   time.Now().Unix(),
+	}
+	insertedGroupID, err := groupChatTestRepo.Create(insertedUID, chat)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var removeImageURLTests = []struct {
+		testName string
+		uid      string
+		groupID  string
+		err      error
+	}{
+		{
+			testName: "not the owner of the group",
+			uid:      notOwnerID,
+			groupID:  insertedGroupID,
+			err:      errors.New("has error"),
+		},
+		{
+			testName: "valid remove",
+			uid:      insertedUID,
+			groupID:  insertedGroupID,
+			err:      nil,
+		},
+	}
+
+	for _, tt := range removeImageURLTests {
+		err := groupChatTestRepo.RemoveImageURL(tt.uid, tt.groupID)
+		if tt.err == nil && err != nil {
+			t.Errorf("was not expecting an error but got: %s", err.Error())
 		}
 	}
 }
