@@ -213,3 +213,28 @@ func (g GroupChatImpl) RemoveImageURL(uid, groupID string) error {
 
 	return nil
 }
+
+func (g GroupChatImpl) IsGroupOwner(uid, groupID string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	uObjectID, err := primitive.ObjectIDFromHex(uid)
+	if err != nil {
+		return false, err
+	}
+	groupObjectID, err := primitive.ObjectIDFromHex(groupID)
+	if err != nil {
+		return false, err
+	}
+
+	filter := bson.D{{"_id", groupObjectID}, {"group_owner", uObjectID}}
+
+	gColl := g.DBConn.Client.Database(g.App.DBName).Collection("chat_groups")
+	result := gColl.FindOne(ctx, filter)
+
+	if result.Err() != nil {
+		return false, result.Err()
+	}
+
+	return true, nil
+}

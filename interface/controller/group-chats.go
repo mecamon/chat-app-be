@@ -5,6 +5,7 @@ import (
 	"github.com/mecamon/chat-app-be/config"
 	appi18n "github.com/mecamon/chat-app-be/i18n"
 	repositories_impl "github.com/mecamon/chat-app-be/interface/repositories"
+	"github.com/mecamon/chat-app-be/interface/services"
 	"github.com/mecamon/chat-app-be/models"
 	"github.com/mecamon/chat-app-be/use-cases/interactors"
 	"github.com/mecamon/chat-app-be/use-cases/presenters"
@@ -15,6 +16,8 @@ import (
 )
 
 var groupChats GroupChats
+
+const maxGroupImageSize int64 = 5242880
 
 type GroupChats struct {
 	app           *config.App
@@ -183,6 +186,144 @@ func (c *GroupChats) AddUserToChat(w http.ResponseWriter, r *http.Request) {
 
 	if err := c.groupChatRepo.AddUserToChat(user, groupID); err != nil {
 		errMsg := loc.GetMsg("ErrorAddingUserToChat", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+
+	_ = utils.JSONResponse(w, http.StatusOK, nil)
+}
+
+func (c *GroupChats) AddImageURL(w http.ResponseWriter, r *http.Request) {
+	lang := r.Header.Get("Accept-Language")
+	loc := c.mLocales.GetSpeLocales(lang)
+	ID := r.Context().Value("ID").(string)
+	groupID := utils.GetRouteParam(r.URL.Path)
+
+	if err := r.ParseMultipartForm(128); err != nil {
+		errMsg := loc.GetMsg("ErrorParsingBody", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+
+	file, fileHeader, err := r.FormFile("file")
+	if err != nil {
+		errMsg := loc.GetMsg("ErrorParsingBody", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+	defer file.Close()
+
+	if file == nil {
+		errMsg := loc.GetMsg("RequiredField", map[string]interface{}{"RequiredField": "file"})
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+
+	fileInfo := models.FileInfo{
+		Size:        fileHeader.Size,
+		ContentType: fileHeader.Header.Get("Content-Type"),
+	}
+
+	contentTypesAccepted := []string{
+		"image/jpg",
+		"image/jpeg",
+		"image/png",
+		"image/JPG",
+		"image/JPEG",
+		"image/PNG",
+	}
+
+	isValid := interactors.ValidFile(fileInfo, maxGroupImageSize, contentTypesAccepted...)
+	if !isValid {
+		errMsg := loc.GetMsg("WrongFileType", map[string]interface{}{
+			"Types": contentTypesAccepted,
+			"Size":  maxGroupImageSize,
+		})
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+
+	isOwner, err := c.groupChatRepo.IsGroupOwner(ID, groupID)
+	if err != nil {
+		errMsg := loc.GetMsg("NothingWasUpdated", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+	if !isOwner {
+		errMsg := loc.GetMsg("NothingWasUpdated", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+
+	storage, err := services.GetStorage()
+	if err != nil {
+		_ = utils.JSONResponse(w, http.StatusServiceUnavailable, nil)
+		return
+	}
+
+	imageURL, err := storage.UploadImage(file, groupID)
+	if err != nil {
+		errMsg := loc.GetMsg("ErrorAddingFile", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusServiceUnavailable, errMessages)
+		return
+	}
+
+	if err := c.groupChatRepo.AddImageURL(ID, groupID, imageURL); err != nil {
+		errMsg := loc.GetMsg("NothingWasUpdated", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+
+	_ = utils.JSONResponse(w, http.StatusOK, nil)
+}
+
+func (c *GroupChats) RemoveImageURL(w http.ResponseWriter, r *http.Request) {
+	lang := r.Header.Get("Accept-Language")
+	loc := c.mLocales.GetSpeLocales(lang)
+	ID := r.Context().Value("ID").(string)
+	groupID := utils.GetRouteParam(r.URL.Path)
+
+	isOwner, err := c.groupChatRepo.IsGroupOwner(ID, groupID)
+	if err != nil {
+		errMsg := loc.GetMsg("NothingWasUpdated", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+	if !isOwner {
+		errMsg := loc.GetMsg("NothingWasUpdated", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
+		return
+	}
+
+	storage, err := services.GetStorage()
+	if err != nil {
+		errMsg := loc.GetMsg("ErrorRemovingFile", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusServiceUnavailable, errMessages)
+		return
+	}
+
+	_, err = storage.DeleteImage(groupID)
+	if err != nil {
+		errMsg := loc.GetMsg("ErrorRemovingFile", nil)
+		errMessages := []string{errMsg}
+		_ = utils.JSONResponse(w, http.StatusServiceUnavailable, errMessages)
+		return
+	}
+
+	if err := c.groupChatRepo.RemoveImageURL(ID, groupID); err != nil {
+		errMsg := loc.GetMsg("NothingWasUpdated", nil)
 		errMessages := []string{errMsg}
 		_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)
 		return

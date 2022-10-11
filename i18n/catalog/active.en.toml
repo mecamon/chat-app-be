@@ -80,6 +80,14 @@ other = "wrong email or password"
 description = "Error message for wrong file type"
 other = "file type has to be {{.Types}} and not bigger than {{.Size}} bytes"
 
+[ErrorAddingFile]
+description = "Error message for when the adding image service fail"
+other = "something went wrong adding the file"
+
+[ErrorRemovingFile]
+description = "Error message for when the removing image service fail"
+other = "something went wrong removing the file"
+
 [RequiredField]
 description = "Error message for required field"
 other = "{{.Field}} is required"

@@ -440,3 +440,55 @@ func TestGroupChatImpl_RemoveImageURL(t *testing.T) {
 		}
 	}
 }
+
+func TestGroupChatImpl_IsGroupOwner(t *testing.T) {
+	user := models.User{
+		Name:      "User to check owner",
+		Bio:       "User created to check ownership",
+		Email:     "user@isowner.com",
+		Password:  "validPass123",
+		Phone:     8091234567,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	hashedPass, err := utils.GenerateHash(user.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	user.Password = hashedPass
+	insertedUID, err := authTestRepo.Register(user)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	notInsertedUID := "3eb3d668b31de5d588f42a5d"
+
+	chat := models.GroupChat{
+		Name:        "Group to check owner",
+		Description: "Group to check ownership",
+		CreatedAt:   time.Now().Unix(),
+		UpdatedAt:   time.Now().Unix(),
+	}
+	insertedGroupID, err := groupChatTestRepo.Create(insertedUID, chat)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var isGroupOwnerTests = []struct {
+		testName       string
+		uid            string
+		groupID        string
+		expectedResult bool
+	}{
+		{testName: "not the owner", uid: notInsertedUID, groupID: insertedGroupID, expectedResult: false},
+		{testName: "it is the owner", uid: insertedUID, groupID: insertedGroupID, expectedResult: true},
+	}
+
+	for _, tt := range isGroupOwnerTests {
+		t.Log("TEST NAME:", tt.testName)
+		isOwner, _ := groupChatTestRepo.IsGroupOwner(tt.uid, tt.groupID)
+		if isOwner != tt.expectedResult {
+			t.Errorf("expected result is %v but got %v instead", tt.expectedResult, isOwner)
+		}
+	}
+}

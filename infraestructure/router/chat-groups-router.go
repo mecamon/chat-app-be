@@ -21,5 +21,7 @@ func AddChatGroupsSubRouter() {
 	s.HandleFunc("/{group_id}", chatGroupsController.Delete).Methods(http.MethodDelete)
 	s.HandleFunc("/add_to_chat/{group_id}", chatGroupsController.AddUserToChat).Methods(http.MethodPost)
 	s.HandleFunc("/load_chats", chatGroupsController.LoadAll).Methods(http.MethodGet)
+	s.HandleFunc("/image/{group_id}", chatGroupsController.AddImageURL).Methods(http.MethodPatch)
+	s.HandleFunc("/image/{group_id}", chatGroupsController.RemoveImageURL).Methods(http.MethodDelete)
 	s.Use(middlewares.TokenValidation)
 }

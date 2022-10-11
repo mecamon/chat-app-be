@@ -8,8 +8,11 @@ import (
 	"github.com/mecamon/chat-app-be/models"
 	"github.com/mecamon/chat-app-be/use-cases/interactors"
 	"github.com/mecamon/chat-app-be/utils"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 )
@@ -371,4 +374,162 @@ func TestChatGroupsController_AddUserToChat(t *testing.T) {
 			t.Errorf("expected status code is %d but got %d instead", tt.expectedStatusCode, rr.Code)
 		}
 	}
+}
+
+func TestChatGroupsController_AddImageURL(t *testing.T) {
+	user := models.User{
+		Name:      "add image to chat",
+		Bio:       "User to test add image to chat",
+		Email:     "addimage@tochat.com",
+		Password:  "validPass123",
+		Phone:     8091234567,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	hashedPass, err := utils.GenerateHash(user.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	user.Password = hashedPass
+	insertedUID, err := authTestRepo.Register(user)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	notInsertedUID := "3eb3d668b31de5d588f42a6d"
+
+	chat := models.GroupChat{
+		Name:        "Chat to add image ctrl",
+		Description: "Chat to add image ctrl",
+		CreatedAt:   time.Now().Unix(),
+		UpdatedAt:   time.Now().Unix(),
+	}
+	insertedGroupID, err := chatGroupsTestRepo.Create(insertedUID, chat)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	wrongFile, err := os.OpenFile("../../fixtures/not-jpg.webp", os.O_RDONLY, 0755)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	correctFile, err := os.OpenFile("../../fixtures/wildlife.jpg", os.O_RDONLY, 0755)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	defer func() {
+		wrongFile.Close()
+		correctFile.Close()
+	}()
+
+	var addImageTests = []struct {
+		testName           string
+		uid                string
+		groupID            string
+		file               *os.File
+		expectedStatusCode int
+	}{
+		{testName: "wrong file type", uid: insertedUID, groupID: insertedGroupID, file: wrongFile, expectedStatusCode: http.StatusBadRequest},
+		{testName: "null field", uid: insertedUID, groupID: insertedGroupID, file: nil, expectedStatusCode: http.StatusBadRequest},
+		{testName: "not the group owner", uid: notInsertedUID, groupID: insertedGroupID, file: correctFile, expectedStatusCode: http.StatusBadRequest},
+	}
+
+	for _, tt := range addImageTests {
+		t.Log("TEST NAME:", tt.testName)
+
+		token, err := json_web_token.Generate(insertedUID, user.Email)
+		if err != nil {
+			t.Error(err.Error())
+		}
+
+		//adding file read from fixtures to multipart/form-data
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		if tt.file != nil {
+			part, err := writer.CreateFormFile("file", tt.file.Name())
+			if err != nil {
+				t.Error(err.Error())
+			}
+			_, err = io.Copy(part, tt.file)
+			if err != nil {
+				t.Error(err.Error())
+			}
+		}
+
+		writer.Close()
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/api/chat_groups/image/%s", tt.groupID), body)
+		req.Header.Set("Authorization", token)
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+
+		mainRouter.ServeHTTP(rr, req)
+
+		if tt.expectedStatusCode != rr.Code {
+			t.Errorf("expected status code is:%d but got %d instead", tt.expectedStatusCode, rr.Code)
+		}
+	}
+}
+
+func TestChatGroupsController_RemoveImageURL(t *testing.T) {
+	user := models.User{
+		Name:      "User to remove image ctrl",
+		Bio:       "User to remove image ctrl",
+		Email:     "usertoremove@imagectrl.com",
+		Password:  "validPass123",
+		Phone:     8091234567,
+		IsActive:  true,
+		CreatedAt: time.Now().Unix(),
+		UpdatedAt: time.Now().Unix(),
+	}
+	hashedPass, err := utils.GenerateHash(user.Password)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	user.Password = hashedPass
+	insertedUID, err := authTestRepo.Register(user)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	notInsertedUID := "3eb3d668b31de5d588f42a6d"
+
+	chat := models.GroupChat{
+		Name:        "chat to remove image ctrl",
+		Description: "chat to remove image ctrl",
+		CreatedAt:   time.Now().Unix(),
+		UpdatedAt:   time.Now().Unix(),
+	}
+	insertedGroupID, err := chatGroupsTestRepo.Create(insertedUID, chat)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	var removeImageURLTests = []struct {
+		testName           string
+		uid                string
+		groupID            string
+		expectedStatusCode int
+	}{
+		{testName: "not the owner", uid: notInsertedUID, groupID: insertedGroupID, expectedStatusCode: http.StatusBadRequest},
+	}
+
+	for _, tt := range removeImageURLTests {
+		t.Log("TEST NAME", tt.testName)
+
+		token, err := json_web_token.Generate(tt.uid, user.Email)
+		if err != nil {
+			t.Error(err.Error())
+		}
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/chat_groups/image/%s", tt.groupID), nil)
+		req.Header.Set("Authorization", token)
+
+		mainRouter.ServeHTTP(rr, req)
+
+		if tt.expectedStatusCode != rr.Code {
+			t.Errorf("expected status code is %d but got %d instead", tt.expectedStatusCode, rr.Code)
+		}
+	}
+
 }

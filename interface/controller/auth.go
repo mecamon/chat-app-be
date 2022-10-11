@@ -17,11 +17,16 @@ import (
 	"strconv"
 )
 
-const (
-	maxFileSize int64 = 5242880
-)
+const maxProfileImageSize int64 = 5242880
 
-var fileAcceptedContentTypes = []string{"image/jpg", "image/jpeg", "image/png"}
+var fileAcceptedContentTypes = []string{
+	"image/jpg",
+	"image/jpeg",
+	"image/png",
+	"image/JPG",
+	"image/JPEG",
+	"image/PNG",
+}
 
 type AuthController struct {
 	app      *config.App
@@ -84,11 +89,11 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 			ContentType: fileHeader.Header.Get("Content-Type"),
 		}
 
-		hasAValidFile := interactors.ValidFile(fileInfo, maxFileSize, fileAcceptedContentTypes...)
+		hasAValidFile := interactors.ValidFile(fileInfo, maxProfileImageSize, fileAcceptedContentTypes...)
 		if !hasAValidFile {
 			errMsg := locales.GetMsg("WrongFileType", map[string]interface{}{
 				"Types": fileAcceptedContentTypes,
-				"Size":  maxFileSize,
+				"Size":  maxProfileImageSize,
 			})
 			errMessages := []string{errMsg}
 			_ = utils.JSONResponse(w, http.StatusBadRequest, errMessages)

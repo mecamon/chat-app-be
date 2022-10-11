@@ -18,4 +18,5 @@ type GroupChat interface {
 	AddUserToChat(user models.User, groupID string) error
 	AddImageURL(uid, groupID, imageURL string) error
 	RemoveImageURL(udi, groupID string) error
+	IsGroupOwner(uid, groupID string) (bool, error)
 }
