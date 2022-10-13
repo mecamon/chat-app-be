@@ -20,3 +20,9 @@ type GroupChat interface {
 	RemoveImageURL(udi, groupID string) error
 	IsGroupOwner(uid, groupID string) (bool, error)
 }
+
+type ClusterMsgRepo interface {
+	Create(cluster models.ClusterOfMessages) (string, error)
+	Update(clusterID string, message models.Message) error
+	GetLatest() (models.ClusterOfMessages, error)
+}

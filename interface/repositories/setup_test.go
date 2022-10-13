@@ -15,6 +15,7 @@ import (
 var dbConn *data.DB
 var authTestRepo repositories.AuthRepo
 var groupChatTestRepo repositories.GroupChat
+var clusterTestMsgRepo repositories.ClusterMsgRepo
 var app *config.App
 
 func TestMain(m *testing.M) {
@@ -41,6 +42,7 @@ func run() *data.DB {
 	}
 	authTestRepo = InitAuthRepo(app, dbConn)
 	groupChatTestRepo = InitGroupChatRepo(app, dbConn)
+	clusterTestMsgRepo = InitClusterMsgRepo(app, dbConn)
 	return dbConn
 }
 

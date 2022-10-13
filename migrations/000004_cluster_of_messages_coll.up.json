@@ -1,5 +1,5 @@
 [{
-  "create": "day_messages",
+  "create": "cluster_of_messages",
   "validator": {
     "$jsonSchema": {
       "bsonType": "object",
@@ -8,6 +8,10 @@
         "messages": {
           "bsonType": "array",
           "description": "messages must be an array"
+        },
+        "belongs_to_group": {
+          "bsonType": "objectId",
+          "description": "must be an objectId type"
         },
         "created_at": {
           "bsonType": "long",

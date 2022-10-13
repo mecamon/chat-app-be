@@ -21,6 +21,10 @@
           "bsonType": "array",
           "description": "participants type must be an array"
         },
+        "is_closed": {
+          "bsonType": "bool",
+          "description": "is_closed type must be bool"
+        },
         "created_at": {
           "bsonType": "long",
           "description": "must be a long"

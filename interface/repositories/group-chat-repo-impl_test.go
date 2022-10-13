@@ -279,7 +279,7 @@ func TestGroupChatImpl_LoadAll(t *testing.T) {
 		{testName: "load owned groups only", uid: participantID, filter: map[string]interface{}{
 			"skip":  skip,
 			"take":  take,
-			"chats": "participants",
+			"chats": "participating",
 		}, err: nil},
 	}
 
@@ -295,7 +295,7 @@ func TestGroupChatImpl_LoadAll(t *testing.T) {
 		if tt.filter["chats"] == "owned" && groups[0].GroupOwner.Hex() != tt.uid {
 			t.Error("returned groups does NOT match the ownerID")
 		}
-		if tt.filter["chats"] == "participants" {
+		if tt.filter["chats"] == "participating" {
 			gg := map[string]bool{}
 			for i, g := range groups {
 				gg[g.Name] = false
