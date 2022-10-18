@@ -45,7 +45,7 @@ func (r *ClusterMsgRepo) Create(cluster models.ClusterOfMessages) (string, error
 	return result.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
-func (r *ClusterMsgRepo) Update(clusterID string, message models.Message) error {
+func (r *ClusterMsgRepo) Update(clusterID string, message models.MsgContent) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
 

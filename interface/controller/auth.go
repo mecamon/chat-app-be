@@ -6,6 +6,7 @@ import (
 	"github.com/mecamon/chat-app-be/config"
 	appi18n "github.com/mecamon/chat-app-be/i18n"
 	json_web_token "github.com/mecamon/chat-app-be/interface/json-web-token"
+	repositories_impl "github.com/mecamon/chat-app-be/interface/repositories"
 	"github.com/mecamon/chat-app-be/interface/services"
 	"github.com/mecamon/chat-app-be/models"
 	"github.com/mecamon/chat-app-be/use-cases/interactors"
@@ -36,11 +37,11 @@ type AuthController struct {
 
 var auth *AuthController
 
-func InitAuthController(app *config.App, loc *appi18n.MultiLocales, authRepo repositories.AuthRepo) *AuthController {
+func InitAuthController() *AuthController {
 	auth = &AuthController{
-		app:      app,
-		mLocales: loc,
-		authRepo: authRepo,
+		app:      config.GetConfig(),
+		mLocales: appi18n.GetMultiLocales(),
+		authRepo: repositories_impl.GetAuthRepo(),
 	}
 	return auth
 }

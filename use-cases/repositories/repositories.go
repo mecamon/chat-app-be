@@ -23,6 +23,6 @@ type GroupChat interface {
 
 type ClusterMsgRepo interface {
 	Create(cluster models.ClusterOfMessages) (string, error)
-	Update(clusterID string, message models.Message) error
+	Update(clusterID string, message models.MsgContent) error
 	GetLatest() (models.ClusterOfMessages, error)
 }

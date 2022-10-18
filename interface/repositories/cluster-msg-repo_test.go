@@ -239,12 +239,12 @@ func TestClusterMsgRepo_Update(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	message1 := models.Message{
+	message1 := models.MsgContent{
 		From:        objectMsgUID,
 		To:          objectReceiverUID,
 		TextContent: "test message content #1",
 	}
-	message2 := models.Message{
+	message2 := models.MsgContent{
 		From:        objectMsgUID,
 		To:          objectReceiverUID,
 		TextContent: "test message content #2",
@@ -253,10 +253,10 @@ func TestClusterMsgRepo_Update(t *testing.T) {
 	var updateTests = []struct {
 		testName  string
 		clusterID string
-		messages  []models.Message
+		messages  []models.MsgContent
 		err       error
 	}{
-		{testName: "successful update", clusterID: clusterID, messages: []models.Message{
+		{testName: "successful update", clusterID: clusterID, messages: []models.MsgContent{
 			message1,
 			message2,
 		}, err: nil},

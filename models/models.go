@@ -56,27 +56,27 @@ type EmailInfo struct {
 type ClusterOfMessages struct {
 	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	BelongsToGroup primitive.ObjectID `bson:"belongs_to_group,omitempty" json:"belongsToGroup"`
-	Messages       []Message          `bson:"messages,omitempty" json:"messages"`
+	Messages       []MsgContent       `bson:"messages,omitempty" json:"messages"`
 	CreatedAt      int64              `bson:"created_at,omitempty" json:"createdAt"`
 	UpdatedAt      int64              `bson:"updated_at,omitempty" json:"updatedAt"`
 	IsClosed       bool               `bson:"is_closed" json:"isClosed"`
 }
 
 type ClusterOfMessagesDTO struct {
-	BelongsToGroup string    `bson:"belongs_to_group,omitempty" json:"belongsToGroup"`
-	Messages       []Message `bson:"messages,omitempty" json:"messages"`
+	BelongsToGroup string          `bson:"belongs_to_group,omitempty" json:"belongsToGroup"`
+	Messages       []MsgContentDTO `bson:"messages,omitempty" json:"messages"`
 }
 
-type Message struct {
+type MsgContent struct {
 	From        primitive.ObjectID `json:"from"`
 	To          primitive.ObjectID `json:"to"`
 	TextContent string             `json:"textContent"`
 }
 
-type MessageDTO struct {
+type MsgContentDTO struct {
 	From        string `json:"from"`
 	To          string `json:"to"`
-	TextContent []byte `json:"textContent"`
+	TextContent string `json:"textContent"`
 }
 
 type CustomClaims struct {

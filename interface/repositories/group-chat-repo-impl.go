@@ -119,11 +119,14 @@ func (g GroupChatImpl) LoadAll(uid string, filters map[string]interface{}) ([]mo
 	case "owned":
 		filter = bson.D{{"group_owner", ownerID}}
 	case "participating":
-		filter = bson.D{{"participants",
-			bson.D{{"$elemMatch",
-				bson.D{{"_id", ownerID}},
-			}},
-		}}
+		filter = bson.D{
+			{"$or",
+				bson.A{
+					bson.D{{"participants", bson.D{{"$elemMatch", bson.D{{"_id", ownerID}}}}}},
+					bson.D{{"group_owner", ownerID}},
+				},
+			},
+		}
 	default:
 		filter = bson.D{}
 	}

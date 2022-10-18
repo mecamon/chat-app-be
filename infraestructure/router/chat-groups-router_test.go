@@ -285,7 +285,7 @@ func TestChatGroupsController_LoadAll(t *testing.T) {
 	}{
 		{testName: "get all", queryParams: "?skip=0&take=8&chats=all", expectedStatusCode: http.StatusOK},
 		{testName: "get my groups", queryParams: "?skip=0&take=8&chats=owned", expectedStatusCode: http.StatusOK},
-		{testName: "get groups I'm participating", queryParams: "?skip=0&take=8&chats=participating", expectedStatusCode: http.StatusNoContent},
+		{testName: "get groups I'm participating", queryParams: "?skip=0&take=8&chats=participating", expectedStatusCode: http.StatusOK},
 	}
 
 	for _, tt := range loadAllTests {
@@ -309,8 +309,8 @@ func TestChatGroupsController_LoadAll(t *testing.T) {
 			if err := json.NewDecoder(rr.Result().Body).Decode(&groups); err != nil {
 				t.Error(err.Error())
 			}
-			if groups != nil {
-				t.Error("expected 0 groups but got a few")
+			if len(groups) != 1 {
+				t.Error("expected 1 groups but got a nothing or more")
 			}
 		}
 	}

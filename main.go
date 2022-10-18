@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	appi18n "github.com/mecamon/chat-app-be/i18n"
+	"github.com/mecamon/chat-app-be/interface/controller"
 	repository "github.com/mecamon/chat-app-be/interface/repositories"
 	"github.com/mecamon/chat-app-be/interface/services"
 	"log"
@@ -32,6 +33,17 @@ func main() {
 		}
 	}()
 	runRepos(app, dbConn)
+
+	hub := &services.Hub{
+		Clients:    make(map[*services.Client]bool),
+		Broadcast:  make(chan services.MessageStruct),
+		Register:   make(chan *services.Client),
+		Unregister: make(chan *services.Client),
+	}
+
+	go hub.Run()
+
+	runControllers(hub)
 	services.InitMailService(app)
 	handler := runRouters()
 
@@ -70,9 +82,14 @@ func runDB(app *config.App) *data.DB {
 func runRepos(app *config.App, dbConn *data.DB) {
 	_ = repository.InitAuthRepo(app, dbConn)
 	_ = repository.InitGroupChatRepo(app, dbConn)
+	_ = repository.InitClusterMsgRepo(app, dbConn)
 }
 
-// TODO: run controllers
+func runControllers(hub *services.Hub) {
+	_ = controller.InitAuthController()
+	_ = controller.InitGroupChats()
+	_ = controller.InitWSHandshake(hub)
+}
 
 func runRouters() http.Handler {
 	router.SetRouter()

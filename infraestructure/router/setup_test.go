@@ -28,13 +28,12 @@ func TestMain(m *testing.M) {
 	if err := appi18n.InitLocales(); err != nil {
 		panic(err.Error())
 	}
-	mLoc := appi18n.GetMultiLocales()
 
 	dbConn := runDB()
 	authTestRepo = repositories_impl.InitAuthRepo(app, dbConn)
 	chatGroupsTestRepo = repositories_impl.InitGroupChatRepo(app, dbConn)
 	_ = services.InitMailService(app)
-	controller.InitAuthController(app, mLoc, authTestRepo)
+	controller.InitAuthController()
 	controller.InitGroupChats()
 
 	runRouter()
