@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package services
 
 import (
@@ -5,6 +8,8 @@ import (
 	"fmt"
 	"github.com/mecamon/chat-app-be/config"
 	"github.com/mecamon/chat-app-be/infraestructure/data"
+	repositories_impl "github.com/mecamon/chat-app-be/interface/repositories"
+	"github.com/mecamon/chat-app-be/use-cases/repositories"
 	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"os"
@@ -13,9 +18,14 @@ import (
 
 var app *config.App
 var mailTestService *Mail
+var authRepo repositories.AuthRepo
+var groupChatRepo repositories.GroupChat
 
 func TestMain(m *testing.M) {
 	dbConn := runDB()
+	_ = repositories_impl.InitClusterMsgRepo(app, dbConn)
+	authRepo = repositories_impl.InitAuthRepo(app, dbConn)
+	groupChatRepo = repositories_impl.InitGroupChatRepo(app, dbConn)
 	runServices(app)
 	code := m.Run()
 	shutdown(dbConn)

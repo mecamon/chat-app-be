@@ -40,23 +40,27 @@ func (h *Hub) Run() {
 		case client := <-h.Unregister:
 			delete(h.Clients, client)
 		case m := <-h.Broadcast:
-			var msgContentDto models.MsgContentDTO
-			err := json.Unmarshal(m.P, &msgContentDto)
-			if err != nil {
-				log.Println(err.Error())
-			}
-			err = h.handleMsgStorage(msgContentDto)
-			if err != nil {
-				log.Println(err.Error())
-			}
+			h.handleBroadcast(m)
+		}
+	}
+}
 
-			for client := range h.Clients {
-				if h.isInTheGroup(msgContentDto, client) {
-					err = client.Conn.WriteMessage(m.MessageType, m.P)
-					if err != nil {
-						log.Println(err.Error())
-					}
-				}
+func (h *Hub) handleBroadcast(m MessageStruct) {
+	var msgContentDto models.MsgContentDTO
+	err := json.Unmarshal(m.P, &msgContentDto)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	err = h.handleMsgStorage(msgContentDto)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	for client := range h.Clients {
+		if h.isInTheGroup(msgContentDto, client) {
+			err = client.Conn.WriteMessage(m.MessageType, m.P)
+			if err != nil {
+				log.Println(err.Error())
 			}
 		}
 	}
