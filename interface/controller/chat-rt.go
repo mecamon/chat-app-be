@@ -95,7 +95,6 @@ func (c *WSHandshake) Connect(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 			return
 		}
-		log.Println("This is the received message:", string(p))
 		client.Hub.Broadcast <- services.MessageStruct{
 			MessageType: messageType,
 			P:           p,

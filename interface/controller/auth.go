@@ -113,6 +113,13 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	completedU := interactors.CompleteRegEntry(uEntry)
+	hashedPass, err := utils.GenerateHash(completedU.Password)
+	if err != nil {
+		_ = utils.JSONResponse(w, http.StatusServiceUnavailable, nil)
+		return
+	}
+	completedU.Password = hashedPass
+
 	insertedID, err := c.authRepo.Register(completedU)
 	if err != nil {
 		errMsg := locales.GetMsg("EmailAddressTaken", nil)

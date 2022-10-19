@@ -35,10 +35,11 @@ func main() {
 	runRepos(app, dbConn)
 
 	hub := &services.Hub{
-		Clients:    make(map[*services.Client]bool),
-		Broadcast:  make(chan services.MessageStruct),
-		Register:   make(chan *services.Client),
-		Unregister: make(chan *services.Client),
+		Clients:        make(map[*services.Client]bool),
+		Broadcast:      make(chan services.MessageStruct),
+		Register:       make(chan *services.Client),
+		Unregister:     make(chan *services.Client),
+		ClusterMsgRepo: repository.GetClusterMsgRepo(),
 	}
 
 	go hub.Run()

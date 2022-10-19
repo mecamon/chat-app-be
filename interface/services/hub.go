@@ -4,8 +4,13 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/mecamon/chat-app-be/models"
+	"github.com/mecamon/chat-app-be/use-cases/repositories"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
+	"time"
 )
+
+const limitByCluster = 100
 
 type MessageStruct struct {
 	MessageType int
@@ -20,10 +25,11 @@ type Client struct {
 }
 
 type Hub struct {
-	Clients    map[*Client]bool
-	Register   chan *Client
-	Unregister chan *Client
-	Broadcast  chan MessageStruct
+	Clients        map[*Client]bool
+	Register       chan *Client
+	Unregister     chan *Client
+	Broadcast      chan MessageStruct
+	ClusterMsgRepo repositories.ClusterMsgRepo
 }
 
 func (h *Hub) Run() {
@@ -31,35 +37,69 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.Register:
 			h.Clients[client] = true
-			log.Println("New client registered!!!")
 		case client := <-h.Unregister:
 			delete(h.Clients, client)
-			log.Println("Client removed!!!")
 		case m := <-h.Broadcast:
+			var msgContentDto models.MsgContentDTO
+			err := json.Unmarshal(m.P, &msgContentDto)
+			if err != nil {
+				log.Println(err.Error())
+			}
+			err = h.handleMsgStorage(msgContentDto)
+			if err != nil {
+				log.Println(err.Error())
+			}
+
 			for client := range h.Clients {
-				var msgContentDto models.MsgContentDTO
-				err := json.Unmarshal(m.P, &msgContentDto)
-				if err != nil {
-					log.Println(err.Error())
+				if h.isInTheGroup(msgContentDto, client) {
+					err = client.Conn.WriteMessage(m.MessageType, m.P)
+					if err != nil {
+						log.Println(err.Error())
+					}
 				}
-
-				err = client.Conn.WriteMessage(m.MessageType, m.P)
-				if err != nil {
-					log.Println(err.Error())
-				}
-
-				//if h.isInTheGroup(msgContentDto, client) {
-				//	if err != nil {
-				//		log.Println(err.Error())
-				//	}
-				//	err = client.Conn.WriteMessage(m.MessageType, m.P)
-				//	if err != nil {
-				//		log.Println(err.Error())
-				//	}
-				//}
 			}
 		}
 	}
+}
+
+func (h *Hub) handleMsgStorage(m models.MsgContentDTO) error {
+	activeCluster, err := h.ClusterMsgRepo.GetLatest()
+	clusterID := activeCluster.ID.Hex()
+
+	if err != nil || len(activeCluster.Messages) == limitByCluster {
+		belongsTo, err := primitive.ObjectIDFromHex(m.From)
+		if err != nil {
+			return err
+		}
+		ID, err := h.ClusterMsgRepo.Create(models.ClusterOfMessages{
+			BelongsToGroup: belongsTo,
+			Messages:       nil,
+			CreatedAt:      time.Now().Unix(),
+			UpdatedAt:      time.Now().Unix(),
+			IsClosed:       false,
+		})
+		clusterID = ID
+	}
+
+	from, err := primitive.ObjectIDFromHex(m.From)
+	if err != nil {
+		return err
+	}
+	to, err := primitive.ObjectIDFromHex(m.To)
+	if err != nil {
+		return err
+	}
+
+	message := models.MsgContent{
+		From:        from,
+		To:          to,
+		TextContent: m.TextContent,
+	}
+	err = h.ClusterMsgRepo.Update(clusterID, message)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h *Hub) isInTheGroup(m models.MsgContentDTO, client *Client) bool {
