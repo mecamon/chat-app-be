@@ -29,6 +29,9 @@ type Hub struct {
 	Register       chan *Client
 	Unregister     chan *Client
 	Broadcast      chan MessageStruct
+	GroupAddition  chan models.MsgContentDTO
+	AuthRepo       repositories.AuthRepo
+	GroupChatRepo  repositories.GroupChat
 	ClusterMsgRepo repositories.ClusterMsgRepo
 }
 
@@ -41,6 +44,26 @@ func (h *Hub) Run() {
 			delete(h.Clients, client)
 		case m := <-h.Broadcast:
 			h.handleBroadcast(m)
+		case m := <-h.GroupAddition:
+			h.groupAddition(m)
+		}
+	}
+}
+
+func (h *Hub) groupAddition(m models.MsgContentDTO) {
+	u, err := h.AuthRepo.FindByID(m.From)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	err = h.GroupChatRepo.AddUserToChat(u, m.To)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	for client := range h.Clients {
+		if client.UserInfo.ID.Hex() == u.ID.Hex() {
+			client.UserGroupsIDs = append(client.UserGroupsIDs, m.To)
 		}
 	}
 }

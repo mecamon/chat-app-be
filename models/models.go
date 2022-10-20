@@ -73,10 +73,18 @@ type MsgContent struct {
 	TextContent string             `json:"textContent"`
 }
 
+type Operation int
+
+const (
+	MessageToGroup Operation = iota
+	AddToGroup
+)
+
 type MsgContentDTO struct {
-	From        string `json:"from"`
-	To          string `json:"to"`
-	TextContent string `json:"textContent"`
+	OptType     Operation `json:"optType"`
+	From        string    `json:"from"`
+	To          string    `json:"to"`
+	TextContent string    `json:"textContent"`
 }
 
 type CustomClaims struct {

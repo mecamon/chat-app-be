@@ -39,6 +39,8 @@ func main() {
 		Broadcast:      make(chan services.MessageStruct),
 		Register:       make(chan *services.Client),
 		Unregister:     make(chan *services.Client),
+		AuthRepo:       repository.GetAuthRepo(),
+		GroupChatRepo:  repository.GetGroupChatRepo(),
 		ClusterMsgRepo: repository.GetClusterMsgRepo(),
 	}
 

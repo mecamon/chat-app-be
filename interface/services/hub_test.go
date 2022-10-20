@@ -22,10 +22,10 @@ func TestHub_Run(t *testing.T) {
 		Register:       make(chan *Client),
 		Unregister:     make(chan *Client),
 		Broadcast:      make(chan MessageStruct),
+		AuthRepo:       repositories_impl.GetAuthRepo(),
+		GroupChatRepo:  repositories_impl.GetGroupChatRepo(),
 		ClusterMsgRepo: repositories_impl.GetClusterMsgRepo(),
 	}
-
-	//t.Error("CLIENTS LENGTH", len(hub.Clients))
 
 	go hub.Run()
 

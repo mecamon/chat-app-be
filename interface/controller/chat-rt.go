@@ -1,9 +1,12 @@
 package controller
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/gorilla/websocket"
 	repositories_impl "github.com/mecamon/chat-app-be/interface/repositories"
 	"github.com/mecamon/chat-app-be/interface/services"
+	"github.com/mecamon/chat-app-be/models"
 	"github.com/mecamon/chat-app-be/use-cases/repositories"
 	"github.com/mecamon/chat-app-be/utils"
 
@@ -98,9 +101,24 @@ func (c *WSHandshake) Connect(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 			return
 		}
-		client.Hub.Broadcast <- services.MessageStruct{
-			MessageType: messageType,
-			P:           p,
+
+		var msgContentFEDTO models.MsgContentDTO
+
+		err = json.Unmarshal(p, &msgContentFEDTO)
+		if err != nil {
+			log.Println(err.Error())
+		}
+
+		switch msgContentFEDTO.OptType {
+		case models.AddToGroup:
+			client.Hub.GroupAddition <- msgContentFEDTO
+		case models.MessageToGroup:
+			client.Hub.Broadcast <- services.MessageStruct{
+				MessageType: messageType,
+				P:           p,
+			}
+		default:
+			log.Println(errors.New("operation no defined"))
 		}
 	}
 }
